@@ -33,30 +33,50 @@ ide_profile <- function(handle, context = ide_context()) {
   list(id = NULL, version = NULL, columns = unname(columns), key = list())
 }
 
-read_odcs <- function(file_path) {
+read_directories <- function(paths) {
+  if (!is.character(paths) || anyNA(paths) || length(paths) > 100L) {
+    ide_abort("unsafe_path")
+  }
+  unname(vapply(paths, response_directory, character(1)))
+}
+
+contract_location <- function(path, context) {
+  context <- check_context(context)
+  if (!is.character(path) || length(path) != 1L || is.na(path) ||
+      nchar(path, type = "bytes") > 4096L || !fs::is_absolute_path(path)) {
+    ide_abort("unsafe_path")
+  }
+  tryCatch({
+    real <- normalizePath(path, winslash = "/", mustWork = TRUE)
+    roots <- context$read_roots
+    inside <- vapply(roots, function(root) {
+      startsWith(real, paste0(sub("/+$", "", root), "/"))
+    }, logical(1))
+    if (!any(inside)) ide_abort("unsafe_path")
+    info <- fs::file_info(real, follow = FALSE)
+    if (is.na(info$type) || info$type != "file" ||
+        !is.finite(info$size) || info$size > 1048576L) {
+      ide_abort("unsafe_path")
+    }
+    real
+  }, error = function(e) ide_abort("unsafe_path"))
+}
+
+read_odcs <- function(file_path, context = ide_context()) {
+  file_path <- contract_location(file_path, context)
   if (!requireNamespace("dataraft.adapters", quietly = TRUE)) {
     ide_abort("unavailable")
   }
-  if (
-    !is.character(file_path) ||
-      length(file_path) != 1L ||
-      is.na(file_path) ||
-      !file.exists(file_path) ||
-      dir.exists(file_path)
-  ) {
-    ide_abort()
-  }
-  size <- file.info(file_path)$size
-  if (!is.finite(size) || size > 1048576L) {
-    ide_abort()
-  }
+  # Recheck the canonical path immediately before handing it to the parser.
+  # This local boundary does not protect against concurrent same-user tampering.
+  file_path <- contract_location(file_path, context)
   dataraft.adapters::dr_contract_from_odcs(file_path)
 }
 
 #' @rdname ide_profile
 #' @keywords internal
-ide_validate_contract <- function(file_path) {
-  contract_metadata(read_odcs(file_path))
+ide_validate_contract <- function(file_path, context = ide_context()) {
+  contract_metadata(read_odcs(file_path, context))
 }
 
 #' @rdname ide_profile
@@ -71,7 +91,7 @@ ide_sample_quality <- function(
   if (!identical(resolved$kind, "table")) {
     ide_abort("unsupported")
   }
-  contract <- read_odcs(file_path)
+  contract <- read_odcs(file_path, context)
   rows <- utils::head(resolved$object, limit_value(row_limit, 1000L))
   quality <- dataraft.core::dr_quality(dataraft.core::dr_validate(
     rows,

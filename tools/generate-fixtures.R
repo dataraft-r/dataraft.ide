@@ -74,6 +74,7 @@ if (requireNamespace('dataraft.adapters', quietly = TRUE)) {
     dataraft.core::dr_contract('orders', columns = c(amount = 'numeric')),
     yaml
   )
+  context$read_roots <- normalizePath(dirname(yaml), winslash = '/', mustWork = TRUE)
   for (operation in c('validate_contract', 'sample_quality')) {
     path <- tempfile(fileext = '.json')
     emit_fixture(

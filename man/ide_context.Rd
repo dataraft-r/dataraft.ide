@@ -8,7 +8,8 @@ ide_context(
   workspace = .GlobalEnv,
   objects = NULL,
   lake = NULL,
-  response_root = tempdir()
+  response_root = tempdir(),
+  read_roots = getwd()
 )
 }
 \arguments{
@@ -21,6 +22,10 @@ ide_context(
 \item{response_root}{Trusted existing directory allowed to receive responses.
 Defaults to the R session temporary directory. Configure this in trusted R
 code for an IDE-owned private directory; encoded requests cannot change it.}
+
+\item{read_roots}{Trusted existing directories allowed for contract reads.
+Defaults to the working directory captured when this context is created.
+Use \code{character()} to disable reads. Encoded requests cannot grant access.}
 }
 \value{
 An IDE context used by metadata functions.

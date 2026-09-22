@@ -11,7 +11,7 @@ ide_abort <- function(code = "invalid_request") {
     unavailable = "An optional DataRaft component is unavailable.",
     execution_failed = "The R operation failed; inspect it locally in R.",
     response_too_large = "The metadata response exceeds the size limit.",
-    unsafe_path = "Use an unused JSON response path inside the trusted response directory."
+    unsafe_path = "The file path is outside its trusted directory or is unsafe."
   )
   stop(structure(
     list(message = unname(messages[[code]]), call = NULL, code = code),
@@ -78,6 +78,9 @@ limit_value <- function(x, maximum = 500L) {
 #' @param response_root Trusted existing directory allowed to receive responses.
 #'   Defaults to the R session temporary directory. Configure this in trusted R
 #'   code for an IDE-owned private directory; encoded requests cannot change it.
+#' @param read_roots Trusted existing directories allowed for contract reads.
+#'   Defaults to the working directory captured when this context is created.
+#'   Use `character()` to disable reads. Encoded requests cannot grant access.
 #' @returns An IDE context used by metadata functions.
 #' @export
 #' @examples
@@ -89,7 +92,8 @@ ide_context <- function(
   workspace = .GlobalEnv,
   objects = NULL,
   lake = NULL,
-  response_root = tempdir()
+  response_root = tempdir(),
+  read_roots = getwd()
 ) {
   if (!is.environment(workspace)) {
     ide_abort()
@@ -109,7 +113,8 @@ ide_context <- function(
   structure(
     list(
       workspace = workspace, objects = objects, lake = lake,
-      response_root = response_directory(response_root)
+      response_root = response_directory(response_root),
+      read_roots = read_directories(read_roots)
     ),
     class = "dataraft_ide_context"
   )
@@ -121,6 +126,9 @@ check_context <- function(context) {
   }
   # A previously canonical trusted root must not move through a replaced ancestor.
   if (!identical(response_directory(context$response_root), context$response_root)) {
+    ide_abort("unsafe_path")
+  }
+  if (!identical(read_directories(context$read_roots), context$read_roots)) {
     ide_abort("unsafe_path")
   }
   context
