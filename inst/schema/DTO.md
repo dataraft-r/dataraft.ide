@@ -1,4 +1,4 @@
-# Bridge v1 DTOs
+# Independent metadata and diagnostics channels
 
 Request: `dataraft.ide::ide_request(base64_json)`. JSON Schema validates the envelope and request. All envelope keys are always present, absent values use JSON null; collections always use arrays, including zero or one element. IDs, release_order and handles are strings, not numbers. Envelope contract is numeric 1; generated is UTC RFC3339. Error message is a fixed redacted summary, never the caught R message.
 
@@ -18,3 +18,18 @@ Operations products, contexts, quality, releases, runs, freshness and incidents 
 The extension creates a private temporary directory, passes an unused absolute JSON response path, and checks matching request_id and a 1 MiB file bound. R writes a sibling temporary file and renames once; an existing response file is never replaced. Request is at most 16 KiB. Limits bound emitted selections (default 100, max500); full lake metadata queries may still be needed by current DataRaft APIs.
 
 Reports operation returns collection `{id,created_at}`. Profile/validate_contract return the contract shape directly; sample_quality returns a quality collection. ODCS YAML uses explicit `file_path`, at most1MiB. Profile/sample only accept known in-memory table bindings.
+
+## Schema names and wire compatibility
+
+`bridge-metadata-v1.json` describes metadata channel schema version 1, with
+numeric request `version: 1` and response `contract: 1`.
+`bridge-diagnostics-v1.json` describes diagnostics channel schema version 1,
+with the established wire discriminator `version: 2` and `contract: 2`.
+The latter supports only `diagnostics` and its errors, not metadata operations.
+The numeric wire discriminators remain unchanged for existing clients.
+A channel schema version is not a claim that diagnostics replaces metadata.
+
+Only `ide_context()` and `ide_request()` are exported. The other `ide_*`
+functions are implementation details, including the raw metadata builders and
+file writer. Every client operation uses `ide_request()` and receives the
+correlated envelope. Clients validate the correct channel schema before use.

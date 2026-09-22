@@ -17,3 +17,4 @@ A list containing items and a truncation flag.
 \description{
 List available workspace and lake contexts
 }
+\keyword{internal}

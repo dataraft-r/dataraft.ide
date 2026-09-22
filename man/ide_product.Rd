@@ -17,3 +17,4 @@ A product metadata record, including contract, sources and rules.
 \description{
 Read one product's descriptive contract and source metadata
 }
+\keyword{internal}

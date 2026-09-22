@@ -225,7 +225,7 @@ capture_rule_sources <- function(product) {
 #' @param limit Maximum diagnostics to return, from 1 to 500.
 #' @returns A list with `items` and `truncated`. Each item contains `rule`,
 #'   `status`, `severity`, `path`, `file_hash`, `start` and `end`.
-#' @export
+#' @keywords internal
 ide_diagnostics <- function(handle, limit = 100L) {
   limit <- limit_value(limit)
   if (

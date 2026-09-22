@@ -26,5 +26,5 @@ inside R and are never serialized into responses.
 workspace <- new.env(parent = emptyenv())
 workspace$orders <- dataraft.core::dr_product("orders", data.frame(id = 1:2))
 context <- ide_context(workspace)
-ide_products(context)
+# Pass context to ide_request(); see its complete request example.
 }

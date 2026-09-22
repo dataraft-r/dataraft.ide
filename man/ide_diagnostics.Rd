@@ -39,3 +39,4 @@ Snapshots are retained for the same last 20 bridge trials as their results.
 This operation uses the separate version-2 diagnostics wire schema. Existing
 version-1 requests and responses are unchanged.
 }
+\keyword{internal}

@@ -1,3 +1,12 @@
+# dataraft.ide 0.1.0.9002
+
+* Limit the experimental public R API to `ide_context()` and `ide_request()`.
+  Raw `ide_*` metadata and transport helpers are now internal. Clients migrate
+  to named operations through `ide_request()` for correlated envelopes.
+* Name the independent schemas `bridge-metadata-v1.json` and
+  `bridge-diagnostics-v1.json`. Existing wire discriminators 1 and 2 are
+  unchanged; diagnostics is an opt-in parallel channel, not a metadata upgrade.
+
 # dataraft.ide 0.1.0.9000
 
 * Add an experimental, versioned metadata bridge for workspace and connected lake inspection.

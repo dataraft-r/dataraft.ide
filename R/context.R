@@ -81,7 +81,7 @@ limit_value <- function(x, maximum = 500L) {
 #' workspace <- new.env(parent = emptyenv())
 #' workspace$orders <- dataraft.core::dr_product("orders", data.frame(id = 1:2))
 #' context <- ide_context(workspace)
-#' ide_products(context)
+#' # Pass context to ide_request(); see its complete request example.
 ide_context <- function(workspace = .GlobalEnv, objects = NULL, lake = NULL) {
   if (!is.environment(workspace)) {
     ide_abort()
@@ -242,7 +242,7 @@ collection <- function(items, limit) {
 #' @param context Context from [ide_context()].
 #' @param limit Maximum records, from 1 to 500.
 #' @returns A list containing items and a truncation flag.
-#' @export
+#' @keywords internal
 ide_contexts <- function(context = ide_context(), limit = 100L) {
   items <- list(list(
     handle = "workspace",

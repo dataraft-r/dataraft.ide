@@ -115,7 +115,7 @@ product_summary <- function(x, handle, fallback, kind = object_kind(x)) {
 #' @param selection Workspace or lake context handle.
 #' @param limit Maximum records, from 1 to 500.
 #' @returns Bounded metadata records. No rows or executable code are included.
-#' @export
+#' @keywords internal
 ide_products <- function(
   context = ide_context(),
   selection = "workspace",
@@ -166,7 +166,7 @@ ide_products <- function(
 #' @param handle Opaque handle returned by [ide_products()].
 #' @param context Context from [ide_context()].
 #' @returns A product metadata record, including contract, sources and rules.
-#' @export
+#' @keywords internal
 ide_product <- function(handle, context = ide_context()) {
   resolved <- resolve_handle(handle, context)
   x <- resolved$object
@@ -270,7 +270,7 @@ selected_rows <- function(table, context, selection, handle = NULL) {
 #' @param handle Optional product or result handle.
 #' @param limit Maximum records, from 1 to 500.
 #' @returns Bounded records containing metadata only.
-#' @export
+#' @keywords internal
 ide_runs <- function(
   context = ide_context(),
   selection = "workspace",
@@ -315,7 +315,7 @@ workspace_results <- function(context, handle = NULL) {
 }
 
 #' @rdname ide_runs
-#' @export
+#' @keywords internal
 ide_quality <- function(
   context = ide_context(),
   selection = "workspace",
@@ -370,7 +370,7 @@ ide_quality <- function(
 }
 
 #' @rdname ide_runs
-#' @export
+#' @keywords internal
 ide_incidents <- function(
   context = ide_context(),
   selection = "workspace",
@@ -421,7 +421,7 @@ ide_incidents <- function(
 }
 
 #' @rdname ide_runs
-#' @export
+#' @keywords internal
 ide_releases <- function(
   context = ide_context(),
   selection = "workspace",
@@ -453,7 +453,7 @@ ide_releases <- function(
 }
 
 #' @rdname ide_runs
-#' @export
+#' @keywords internal
 ide_freshness <- function(
   context = ide_context(),
   selection = "workspace",
@@ -501,7 +501,7 @@ ide_freshness <- function(
 }
 
 #' @rdname ide_runs
-#' @export
+#' @keywords internal
 ide_reports <- function(
   context = ide_context(),
   selection = "workspace",
@@ -515,7 +515,7 @@ ide_reports <- function(
 #' Read declared dataset lineage without evaluating transformations
 #' @inheritParams ide_runs
 #' @returns A list with nodes, edges and a truncation flag.
-#' @export
+#' @keywords internal
 ide_lineage <- function(
   context = ide_context(),
   selection = "workspace",
