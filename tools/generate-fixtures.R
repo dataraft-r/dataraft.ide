@@ -1,3 +1,16 @@
+# Fixture generation exercises the same public request boundary as clients.
+emit_fixture <- function(kind, response_path, request_id, context,
+                         handle = NULL, file_path = NULL) {
+  request <- list(version = 1L, operation = kind, response_path = response_path,
+                  request_id = request_id)
+  if (!is.null(handle)) request$handle <- handle
+  if (!is.null(file_path)) request$file_path <- file_path
+  encoded <- jsonlite::base64_enc(charToRaw(as.character(
+    jsonlite::toJSON(request, auto_unbox = TRUE)
+  )))
+  dataraft.ide::ide_request(gsub("[\r\n]", "", encoded), context)
+}
+
 # Run from the package directory with dataraft.ide installed or loaded.
 workspace <- new.env(parent = emptyenv())
 workspace$orders <- dataraft.core::dr_product(
@@ -31,7 +44,7 @@ for (operation in operations) {
   } else {
     NULL
   }
-  dataraft.ide::ide_emit(
+  emit_fixture(
     operation,
     path,
     paste0('fixture-', operation),
@@ -46,7 +59,7 @@ for (operation in operations) {
   unlink(path)
 }
 path <- tempfile(fileext = '.json')
-dataraft.ide::ide_emit(
+emit_fixture(
   'product',
   path,
   'fixture-error',
@@ -63,7 +76,7 @@ if (requireNamespace('dataraft.adapters', quietly = TRUE)) {
   )
   for (operation in c('validate_contract', 'sample_quality')) {
     path <- tempfile(fileext = '.json')
-    dataraft.ide::ide_emit(
+    emit_fixture(
       operation,
       path,
       paste0('fixture-', operation),
@@ -84,7 +97,7 @@ if (requireNamespace('dataraft.adapters', quietly = TRUE)) {
 testthat::with_mocked_bindings(
   {
     path <- tempfile(fileext = '.json')
-    dataraft.ide::ide_emit(
+    emit_fixture(
       'view',
       path,
       'fixture-view',
@@ -98,7 +111,7 @@ testthat::with_mocked_bindings(
   .package = 'utils'
 )
 
-# v2 is an explicit diagnostics channel; v1 fixture shapes remain unchanged.
+# Diagnostics schema v1 uses wire discriminator 2; metadata is unchanged.
 source_path <- tempfile(fileext = '.R')
 writeLines('failed_rule <- function(data) data$amount >= 0', source_path)
 source_env <- new.env(parent = baseenv())
@@ -110,7 +123,7 @@ workspace$located <- dataraft.core::dr_product(
 ) |>
   dataraft.core::dr_add_quality(list(nonnegative = workspace$failed_rule))
 trial_path <- tempfile(fileext = '.json')
-trial <- dataraft.ide::ide_emit(
+trial <- emit_fixture(
   'trial',
   trial_path,
   'fixture-located-trial',

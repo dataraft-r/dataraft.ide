@@ -328,12 +328,7 @@ request_id_value <- function(x) {
 #' @param row_limit Maximum viewed or sample-checked rows, at most 1000.
 #' @param file_path Explicit local ODCS YAML file for contract operations only.
 #' @returns Invisibly, the envelope written to the file.
-#' @export
-#' @examples
-#' path <- tempfile(fileext = ".json")
-#' ide_emit("contexts", path, "example")
-#' jsonlite::fromJSON(path)$contract
-#' unlink(path)
+#' @keywords internal
 ide_emit <- function(
   kind,
   response_path,
@@ -381,11 +376,25 @@ ide_emit <- function(
 #' envelope and do not write a file. Active and delayed bindings are skipped.
 #' Trials can execute user transformations and read sources; this bridge never
 #' exposes a production publication operation.
-#' @param encoded Base64 JSON request following the bundled v1 schema, or the
-#'   separate v2 diagnostics schema.
+#' @param encoded Base64 JSON request following the metadata-v1 schema (wire version 1), or the
+#'   diagnostics-v1 schema (wire version 2).
 #' @param context Context from [ide_context()].
 #' @returns Invisibly, a redacted envelope; valid response channels receive it atomically.
 #' @export
+#' @examples
+#' private <- tempfile("ide-private-")
+#' dir.create(private, mode = "0700")
+#' request <- list(
+#'   version = 1L, operation = "products", request_id = "example",
+#'   response_path = file.path(private, "response.json")
+#' )
+#' encoded <- jsonlite::base64_enc(charToRaw(as.character(
+#'   jsonlite::toJSON(request, auto_unbox = TRUE)
+#' )))
+#' response <- ide_request(gsub("[[:space:]]", "", encoded),
+#'                         ide_context(new.env(parent = emptyenv())))
+#' response$contract
+#' unlink(private, recursive = TRUE)
 ide_request <- function(encoded, context = ide_context()) {
   id <- NULL
   path <- NULL

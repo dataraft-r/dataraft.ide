@@ -19,3 +19,4 @@ Bounded metadata records. No rows or executable code are included.
 \description{
 Discover product and result metadata without running definitions
 }
+\keyword{internal}

@@ -16,9 +16,23 @@ workspace$orders <- dataraft.core::dr_product(
   "orders", data.frame(amount = c(-10, 20))
 ) |> dataraft.core::dr_add_quality(~ amount >= 0)
 context <- ide_context(workspace)
-ide_products(context)
+request_metadata <- function(operation, handle = NULL) {
+  private <- tempfile("ide-private-")
+  dir.create(private, mode = "0700")
+  on.exit(unlink(private, recursive = TRUE))
+  request <- list(
+    version = 1L, operation = operation, request_id = "example",
+    response_path = file.path(private, "response.json")
+  )
+  if (!is.null(handle)) request$handle <- handle
+  encoded <- jsonlite::base64_enc(charToRaw(as.character(
+    jsonlite::toJSON(request, auto_unbox = TRUE)
+  )))
+  dataraft.ide::ide_request(gsub("[[:space:]]", "", encoded), context)
+}
+request_metadata("products")
 workspace$blocked <- dataraft.core::dr_trial(workspace$orders)
-ide_incidents(context)
+request_metadata("incidents")
 ```
 
 Replace the delivery and explicitly try it again. Trial execution never invokes the configured framework destination writer.
@@ -27,7 +41,7 @@ Replace the delivery and explicitly try it again. Trial execution never invokes 
 workspace$passed <- dataraft.core::dr_trial(
   workspace$orders, data = data.frame(amount = c(10, 20))
 )
-ide_runs(context)
+request_metadata("runs")
 ```
 
 RDS offers a portable local delivery format for the same compiler-free example. Reading this file is an explicit user action, not IDE discovery.
@@ -36,19 +50,16 @@ RDS offers a portable local delivery format for the same compiler-free example. 
 path <- tempfile(fileext = ".rds")
 saveRDS(data.frame(amount = c(30, 40)), path)
 workspace$delivery <- readRDS(path)
-ide_profile("binding:delivery", context)
+request_metadata("profile", "binding:delivery")
 unlink(path)
 ```
 
 A private file response contains metadata only. Applications must validate the bundled schema, enforce the one MiB bound and check the request ID.
 
 ```{r}
-private <- tempfile("ide-private-")
-dir.create(private, mode = "0700")
-response <- file.path(private, "response.json")
-ide_emit("quality", response, "vignette", context)
-jsonlite::fromJSON(response)$kind
-unlink(private, recursive = TRUE)
+response <- request_metadata("quality")
+response$kind
+response$contract
 ```
 
 Connected lakes add release, contract, lineage and freshness metadata. Supplying `ide_context(workspace, lake = existing_lake)` never opens a new connection. Reports list frozen report identifiers and creation times, not report values or verification results.

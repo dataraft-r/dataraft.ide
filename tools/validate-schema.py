@@ -2,9 +2,9 @@
 import json
 from pathlib import Path
 import jsonschema
-schema = json.loads(Path('inst/schema/bridge-v1.json').read_text())
+schema = json.loads(Path('inst/schema/bridge-metadata-v1.json').read_text())
 validator = jsonschema.Draft202012Validator(schema, format_checker=jsonschema.FormatChecker())
-schema_v2 = json.loads(Path('inst/schema/bridge-v2.json').read_text())
+schema_v2 = json.loads(Path('inst/schema/bridge-diagnostics-v1.json').read_text())
 validator_v2 = jsonschema.Draft202012Validator(schema_v2, format_checker=jsonschema.FormatChecker())
 for path in Path('inst/fixtures').glob('*.json'):
     value = json.loads(path.read_text())

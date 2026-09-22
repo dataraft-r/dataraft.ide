@@ -46,9 +46,4 @@ request per destination. Responses are limited to one MiB; errors contain
 fixed redacted messages. The file transport is for a trusted local IDE, not
 an authentication boundary or a remote network service.
 }
-\examples{
-path <- tempfile(fileext = ".json")
-ide_emit("contexts", path, "example")
-jsonlite::fromJSON(path)$contract
-unlink(path)
-}
+\keyword{internal}

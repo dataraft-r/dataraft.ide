@@ -10,7 +10,7 @@
 #' @param file_path Explicit local ODCS YAML file, at most one MiB.
 #' @param row_limit Maximum sample size, from 1 to 1000.
 #' @returns Schema metadata, or aggregate quality records without data rows.
-#' @export
+#' @keywords internal
 ide_profile <- function(handle, context = ide_context()) {
   resolved <- resolve_handle(handle, context)
   if (!identical(resolved$kind, "table")) {
@@ -54,13 +54,13 @@ read_odcs <- function(file_path) {
 }
 
 #' @rdname ide_profile
-#' @export
+#' @keywords internal
 ide_validate_contract <- function(file_path) {
   contract_metadata(read_odcs(file_path))
 }
 
 #' @rdname ide_profile
-#' @export
+#' @keywords internal
 ide_sample_quality <- function(
   handle,
   file_path,

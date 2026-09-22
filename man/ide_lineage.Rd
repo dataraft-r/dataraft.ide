@@ -26,3 +26,4 @@ A list with nodes, edges and a truncation flag.
 \description{
 Read declared dataset lineage without evaluating transformations
 }
+\keyword{internal}

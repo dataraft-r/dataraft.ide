@@ -36,3 +36,4 @@ of an existing in-memory data frame, never an unevaluated source callback.
 No values, diagnostics, SQL or expression text leave R. Structural validation
 is not evidence that a contract describes the intended business semantics.
 }
+\keyword{internal}
