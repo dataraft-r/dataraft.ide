@@ -512,9 +512,28 @@ ide_reports <- function(
   rows_metadata(rows, c("id", "created_at"), limit = limit_value(limit))
 }
 
+bounded_lineage <- function(nodes, edges, limit, truncated = FALSE) {
+  if (length(nodes)) {
+    nodes <- nodes[!duplicated(vapply(nodes, `[[`, character(1), "id"))]
+  }
+  kept_nodes <- utils::head(nodes, limit)
+  ids <- vapply(kept_nodes, `[[`, character(1), "id")
+  kept_edges <- Filter(function(edge) {
+    edge$from %in% ids && edge$to %in% ids
+  }, edges)
+  kept_edges <- utils::head(kept_edges, limit)
+  list(
+    nodes = unname(kept_nodes),
+    edges = unname(kept_edges),
+    truncated = truncated || length(nodes) > length(kept_nodes) ||
+      length(edges) > length(kept_edges)
+  )
+}
+
 #' Read declared dataset lineage without evaluating transformations
 #' @inheritParams ide_runs
-#' @returns A list with nodes, edges and a truncation flag.
+#' @returns A list with at most `limit` nodes and edges, and a truncation flag.
+#'   Every returned edge has both endpoints in the returned nodes.
 #' @keywords internal
 ide_lineage <- function(
   context = ide_context(),
@@ -539,17 +558,18 @@ ide_lineage <- function(
       )
     })
     ids <- unique(unlist(lapply(edges, function(edge) c(edge$from, edge$to))))
-    return(list(
-      nodes = unname(lapply(ids, function(id) list(id = id, kind = "asset"))),
-      edges = unname(edges),
-      truncated = truncated
+    return(bounded_lineage(
+      lapply(ids, function(id) list(id = id, kind = "asset")),
+      edges, limit, truncated
     ))
   }
-  products <- if (is.null(handle)) {
-    ide_products(context, limit = limit)$items
+  discovery <- if (is.null(handle)) {
+    ide_products(context, limit = limit)
   } else {
-    list(ide_product(handle, context))
+    list(items = list(ide_product(handle, context)), truncated = FALSE)
   }
+  products <- discovery$items
+  truncated <- discovery$truncated
   nodes <- list()
   edges <- list()
   for (product in products) {
@@ -557,6 +577,7 @@ ide_lineage <- function(
       next
     }
     detail <- ide_product(product$handle, context)
+    truncated <- truncated || isTRUE(detail$source_count > length(detail$sources))
     nodes[[length(nodes) + 1L]] <- list(id = detail$id, kind = "product")
     for (source in detail$sources) {
       id <- source$product_id
@@ -571,14 +592,7 @@ ide_lineage <- function(
       )
     }
   }
-  if (length(nodes)) {
-    nodes <- nodes[!duplicated(vapply(nodes, `[[`, character(1), "id"))]
-  }
-  list(
-    nodes = unname(utils::head(nodes, 2L * limit + 1L)),
-    edges = unname(utils::head(edges, limit)),
-    truncated = length(edges) > limit || length(nodes) > 2L * limit + 1L
-  )
+  bounded_lineage(nodes, edges, limit, truncated)
 }
 
 workflow_definition <- function(x) {

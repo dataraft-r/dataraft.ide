@@ -21,7 +21,8 @@ ide_lineage(
 \item{limit}{Maximum records, from 1 to 500.}
 }
 \value{
-A list with nodes, edges and a truncation flag.
+A list with at most \code{limit} nodes and edges, and a truncation flag.
+Every returned edge has both endpoints in the returned nodes.
 }
 \description{
 Read declared dataset lineage without evaluating transformations

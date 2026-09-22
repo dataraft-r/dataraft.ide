@@ -3,6 +3,8 @@
 * Bound response writes to a trusted `ide_context(response_root = ...)`, defaulting
   to the R session temporary directory. Encoded requests cannot change this root;
   contract-file reads are unchanged.
+* Bound R lineage output by both node and edge counts, retain complete edge
+  endpoints, and propagate upstream truncation.
 * Enforce the documented 500-node and 500-edge lineage limit in the metadata
   JSON schema as well as in R responses.
 
