@@ -1,0 +1,4 @@
+^\.git$
+^\.github$
+^tools$
+^README\.md$

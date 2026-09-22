@@ -1,0 +1,22 @@
+Package: dataraft.ide
+Title: Metadata Bridge for DataRaft IDE Tools
+Version: 0.1.0.9000
+Authors@R: person("Jan-Hendrik", "Weinert", role = c("aut", "cre"), email = "65009403+JanWein@users.noreply.github.com")
+Description: Exposes bounded, allowlisted DataRaft metadata to IDE clients.
+    Provides a private file response protocol, explicit trial and data viewer
+    commands, and workspace discovery without evaluating source expressions.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Depends: R (>= 4.2.0)
+Imports: dataraft.core (>= 0.1.0.9000), fs, jsonlite, rlang
+Suggests: dataraft.lake (>= 0.1.0.9000), dataraft.catalog (>= 0.1.0.9000), dataraft.adapters (>= 0.1.0.9000), testthat (>= 3.2.0), withr, knitr, rmarkdown, duckdb, bit64, yaml
+Config/testthat/edition: 3
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.1
+VignetteBuilder: knitr
+Remotes: dataraft-r/dataraft.core@6fca8a7f5882ae13f14613739f9adaf586a7d105,
+    dataraft-r/dataraft.lake@7eb7b5c5775a02012336b60db92e63a71e16ac36,
+    dataraft-r/dataraft.catalog@11c1f5f3705f83d609250a6c954012a2b430ad75,
+    dataraft-r/dataraft.adapters@11de81f09e5ce05d55379a7e4670527f1717e411
+URL: https://github.com/dataraft-r/dataraft.ide
+BugReports: https://github.com/dataraft-r/dataraft.ide/issues
