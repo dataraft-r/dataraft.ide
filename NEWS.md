@@ -1,3 +1,11 @@
+# dataraft.ide 0.1.0.9003
+
+* Bound response writes to a trusted `ide_context(response_root = ...)`, defaulting
+  to the R session temporary directory. Encoded requests cannot change this root;
+  contract-file reads are unchanged.
+* Enforce the documented 500-node and 500-edge lineage limit in the metadata
+  JSON schema as well as in R responses.
+
 # dataraft.ide 0.1.0.9002
 
 * Limit the experimental public R API to `ide_context()` and `ide_request()`.

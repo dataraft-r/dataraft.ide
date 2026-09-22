@@ -16,7 +16,21 @@ bridge_operations <- c(
   "sample_quality"
 )
 
-response_location <- function(path) {
+response_directory <- function(path) {
+  if (!is.character(path) || length(path) != 1L || is.na(path) ||
+      !fs::is_absolute_path(path)) {
+    ide_abort("unsafe_path")
+  }
+  tryCatch({
+    info <- fs::file_info(path, follow = FALSE)
+    if (is.na(info$type) || info$type != "directory") {
+      ide_abort("unsafe_path")
+    }
+    normalizePath(path, winslash = "/", mustWork = TRUE)
+  }, error = function(e) ide_abort("unsafe_path"))
+}
+
+response_location <- function(path, response_root = response_directory(tempdir())) {
   if (
     !is.character(path) ||
       length(path) != 1L ||
@@ -32,6 +46,18 @@ response_location <- function(path) {
     ide_abort("unsafe_path")
   })
   if (is.na(info$type) || info$type != "directory") {
+    ide_abort("unsafe_path")
+  }
+  parent <- response_directory(parent)
+  root <- response_directory(response_root)
+  if (!identical(root, response_root)) {
+    ide_abort("unsafe_path")
+  }
+  # Compare complete path components, not lexical prefixes; canonicalize first
+  # so dot-dot segments and symlinked ancestors cannot escape the trusted root.
+  prefix <- paste0(sub("/+$", "", root), "/")
+  # normalizePath() resolves platform-native spelling, including Windows paths.
+  if (!identical(parent, root) && !startsWith(parent, prefix)) {
     ide_abort("unsafe_path")
   }
   exists <- tryCatch(
@@ -82,7 +108,11 @@ error_envelope <- function(error, request_id = NULL, version = 1L) {
   )
 }
 
-write_response <- function(envelope, path, max_bytes = 1048576L) {
+write_response <- function(
+  envelope, path, max_bytes = 1048576L,
+  response_root = response_directory(tempdir())
+) {
+  path <- response_location(path, response_root)
   json <- jsonlite::toJSON(
     envelope,
     auto_unbox = TRUE,
@@ -111,7 +141,7 @@ write_response <- function(envelope, path, max_bytes = 1048576L) {
   on.exit(unlink(temporary), add = TRUE)
   writeBin(charToRaw(enc2utf8(as.character(json))), temporary)
   Sys.chmod(temporary, mode = "0600")
-  response_location(path)
+  response_location(path, response_root)
   if (!file.rename(temporary, path)) {
     ide_abort("unsafe_path")
   }
@@ -313,7 +343,9 @@ request_id_value <- function(x) {
 #' Write one bounded metadata response to a private JSON file
 #'
 #' The caller creates a private response directory and supplies an unused file
-#' name. A sibling temporary file is renamed atomically after serialization.
+#' name inside `context$response_root` (the R temporary directory by default).
+#' The root is configured by trusted R code, never by encoded requests.
+#' A sibling temporary file is renamed atomically after serialization.
 #' Existing files and symbolic links are never overwritten. Use one outstanding
 #' request per destination. Responses are limited to one MiB; errors contain
 #' fixed redacted messages. The file transport is for a trusted local IDE, not
@@ -340,7 +372,8 @@ ide_emit <- function(
   row_limit = 100L,
   file_path = NULL
 ) {
-  path <- response_location(response_path)
+  context <- check_context(context)
+  path <- response_location(response_path, context$response_root)
   id <- request_id_value(request_id)
   request <- list(
     version = 1L,
@@ -365,7 +398,7 @@ ide_emit <- function(
     },
     error = function(error) error_envelope(error, id)
   )
-  write_response(envelope, path)
+  write_response(envelope, path, response_root = context$response_root)
 }
 
 #' Receive a base64-encoded IDE request without parsing console output
@@ -375,7 +408,10 @@ ide_emit <- function(
 #' Invalid requests without a valid response channel return an invisible error
 #' envelope and do not write a file. Active and delayed bindings are skipped.
 #' Trials can execute user transformations and read sources; this bridge never
-#' exposes a production publication operation.
+#' exposes a production publication operation. Response writes must remain inside
+#' the canonical `response_root` configured by trusted [ide_context()] code.
+#' This is a path boundary for requests, not a sandbox against R code running
+#' as the same user. Contract file reads retain their existing behavior.
 #' @param encoded Base64 JSON request following the metadata-v1 schema (wire version 1), or the
 #'   diagnostics-v1 schema (wire version 2).
 #' @param context Context from [ide_context()].
@@ -419,7 +455,8 @@ ide_request <- function(encoded, context = ide_context()) {
         version <- 2L
       }
       id <- request_id_value(request$request_id)
-      path <- response_location(request$response_path)
+      context <- check_context(context)
+      path <- response_location(request$response_path, context$response_root)
       check_request(request)
       bridge_envelope(
         request$operation,
@@ -431,7 +468,7 @@ ide_request <- function(encoded, context = ide_context()) {
     error = function(error) error_envelope(error, id, version)
   )
   if (!is.null(path)) {
-    return(write_response(envelope, path))
+    return(write_response(envelope, path, response_root = context$response_root))
   }
   invisible(envelope)
 }

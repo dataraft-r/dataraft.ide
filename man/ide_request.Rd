@@ -21,7 +21,10 @@ or evaluated. Only named operations and exact binding handles are accepted.
 Invalid requests without a valid response channel return an invisible error
 envelope and do not write a file. Active and delayed bindings are skipped.
 Trials can execute user transformations and read sources; this bridge never
-exposes a production publication operation.
+exposes a production publication operation. Response writes must remain inside
+the canonical \code{response_root} configured by trusted \code{\link[=ide_context]{ide_context()}} code.
+This is a path boundary for requests, not a sandbox against R code running
+as the same user. Contract file reads retain their existing behavior.
 }
 \examples{
 private <- tempfile("ide-private-")

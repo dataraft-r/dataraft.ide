@@ -40,7 +40,9 @@ Invisibly, the envelope written to the file.
 }
 \description{
 The caller creates a private response directory and supplies an unused file
-name. A sibling temporary file is renamed atomically after serialization.
+name inside \code{context$response_root} (the R temporary directory by default).
+The root is configured by trusted R code, never by encoded requests.
+A sibling temporary file is renamed atomically after serialization.
 Existing files and symbolic links are never overwritten. Use one outstanding
 request per destination. Responses are limited to one MiB; errors contain
 fixed redacted messages. The file transport is for a trusted local IDE, not
