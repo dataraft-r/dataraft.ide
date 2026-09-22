@@ -88,7 +88,8 @@ test_that('trial retains results and leaves original product unchanged', {
   e$flow <- dataraft.core::dr_workflow() |>
     dataraft.core::dr_add_product(dataraft.core::dr_product(
       'orders',
-      data.frame(id = 1:3)
+      data.frame(id = 1:3),
+      contract = dataraft.core::dr_contract('orders.contract', columns = c(id = 'integer'))
     ))
   before <- serialize(e$flow, NULL)
   withr::defer({
