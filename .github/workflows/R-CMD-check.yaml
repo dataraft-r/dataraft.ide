@@ -8,11 +8,14 @@ permissions:
   contents: read
 jobs:
   check:
-    runs-on: ubuntu-24.04
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        profile: [minimal, full]
+        include:
+          - {os: ubuntu-24.04, profile: minimal}
+          - {os: ubuntu-24.04, profile: full}
+          - {os: windows-latest, profile: minimal}
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       R_KEEP_PKG_SOURCE: yes
@@ -28,7 +31,12 @@ jobs:
       - name: Install pinned dependencies
         shell: Rscript {0}
         run: |
-          options(repos = c(CRAN = "https://packagemanager.posit.co/cran/__linux__/noble/2026-09-18"))
+          snapshot <- if (.Platform$OS.type == "windows") {
+            "https://packagemanager.posit.co/cran/2026-09-18"
+          } else {
+            "https://packagemanager.posit.co/cran/__linux__/noble/2026-09-18"
+          }
+          options(repos = c(CRAN = snapshot))
           install.packages(c("remotes", "rcmdcheck", "testthat", "withr", "knitr", "rmarkdown"))
           full <- Sys.getenv("DATARAFT_IDE_TEST_PROFILE") == "full"
           remotes::install_deps(dependencies = if (full) TRUE else NA, upgrade = "never")

@@ -205,7 +205,15 @@ test_that('retained source snapshots are evicted with results and source file re
 })
 
 test_that('combining marks and astral Unicode within and before functions retain exact columns', {
-  line <- '"e\u0301😀";\tbad <- function(data) { "e\u0301😀"; data$amount >= 0 }'
+  # Avoid mixing Unicode escapes and literal non-BMP characters in an R string:
+  # Windows can replace the literal character while parsing that combination.
+  unicode <- intToUtf8(c(101L, 769L, 128512L))
+  line <- paste0('"', unicode, '";\tbad <- function(data) { "', unicode,
+                 '"; data$amount >= 0 }')
+  points <- utf8ToInt(line)
+  expect_identical(sum(points == 128512L), 2L)
+  expect_identical(sum(points == 769L), 2L)
+  expect_false(any(points == 65533L))
   fixture <- source_trial(line)
   item <- ide_diagnostics(retained_trial(fixture))$items[[1L]]
   # Prefix has 14 code points (one astral character), regardless of tab width.
