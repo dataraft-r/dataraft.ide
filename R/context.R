@@ -1,5 +1,6 @@
 .ide_state <- new.env(parent = emptyenv())
 .ide_state$results <- list()
+.ide_state$rule_sources <- list()
 .ide_state$serial <- 0L
 
 ide_abort <- function(code = "invalid_request") {

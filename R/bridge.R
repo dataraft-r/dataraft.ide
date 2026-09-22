@@ -54,10 +54,11 @@ bridge_envelope <- function(
   kind,
   data = NULL,
   request_id = NULL,
-  error = NULL
+  error = NULL,
+  version = 1L
 ) {
   list(
-    contract = 1L,
+    contract = version,
     generated = format(Sys.time(), "%Y-%m-%dT%H:%M:%OS3Z", tz = "UTC"),
     kind = kind,
     request_id = request_id,
@@ -66,7 +67,7 @@ bridge_envelope <- function(
   )
 }
 
-error_envelope <- function(error, request_id = NULL) {
+error_envelope <- function(error, request_id = NULL, version = 1L) {
   code <- if (inherits(error, "dataraft_ide_error")) {
     error$code
   } else {
@@ -76,7 +77,8 @@ error_envelope <- function(error, request_id = NULL) {
   bridge_envelope(
     "error",
     request_id = request_id,
-    error = list(code = code, message = message)
+    error = list(code = code, message = message),
+    version = version
   )
 }
 
@@ -95,7 +97,8 @@ write_response <- function(envelope, path, max_bytes = 1048576L) {
         list(code = "response_too_large"),
         class = "dataraft_ide_error"
       ),
-      envelope$request_id
+      envelope$request_id,
+      version = envelope$contract
     )
     json <- jsonlite::toJSON(
       envelope,
@@ -121,12 +124,17 @@ run_action <- function(operation, handle, context, row_limit) {
     if (!identical(resolved$kind, "product")) {
       ide_abort("unsupported")
     }
+    source_refs <- capture_rule_sources(resolved$object)
     result <- dataraft.core::dr_trial(resolved$object)
     .ide_state$serial <- .ide_state$serial + 1L
     result_handle <- paste0("result:r", .ide_state$serial)
     .ide_state$results[[result_handle]] <- result
+    .ide_state$rule_sources[[result_handle]] <- source_refs
     if (length(.ide_state$results) > 20L) {
       .ide_state$results <- utils::tail(.ide_state$results, 20L)
+      .ide_state$rule_sources <- .ide_state$rule_sources[names(
+        .ide_state$results
+      )]
     }
     return(list(
       handle = result_handle,
@@ -158,6 +166,12 @@ run_action <- function(operation, handle, context, row_limit) {
 
 bridge_dispatch <- function(request, context) {
   operation <- request$operation
+  if (identical(operation, "diagnostics")) {
+    return(ide_diagnostics(
+      request$handle,
+      if (is.null(request$limit)) 100L else request$limit
+    ))
+  }
   selection <- if (is.null(request$context)) "workspace" else request$context
   limit <- if (is.null(request$limit)) 100L else limit_value(request$limit)
   row_limit <- if (is.null(request$row_limit)) {
@@ -220,6 +234,33 @@ check_request <- function(request) {
       )
   ) {
     ide_abort()
+  }
+  if (identical(request$version, 2L) || identical(request$version, 2)) {
+    if (
+      !identical(request$operation, "diagnostics") ||
+        !all(
+          names(request) %in%
+            c(
+              "version",
+              "request_id",
+              "response_path",
+              "operation",
+              "handle",
+              "limit"
+            )
+        ) ||
+        !is.character(request$handle) ||
+        length(request$handle) != 1L ||
+        is.na(request$handle) ||
+        nchar(request$handle, type = "bytes") > 2048L ||
+        !startsWith(request$handle, "result:")
+    ) {
+      ide_abort()
+    }
+    if (!is.null(request$limit)) {
+      limit_value(request$limit)
+    }
+    return(invisible(request))
   }
   if (!identical(request$version, 1L) && !identical(request$version, 1)) {
     ide_abort()
@@ -340,13 +381,15 @@ ide_emit <- function(
 #' envelope and do not write a file. Active and delayed bindings are skipped.
 #' Trials can execute user transformations and read sources; this bridge never
 #' exposes a production publication operation.
-#' @param encoded Base64 JSON request following the bundled v1 schema.
+#' @param encoded Base64 JSON request following the bundled v1 schema, or the
+#'   separate v2 diagnostics schema.
 #' @param context Context from [ide_context()].
 #' @returns Invisibly, a redacted envelope; valid response channels receive it atomically.
 #' @export
 ide_request <- function(encoded, context = ide_context()) {
   id <- NULL
   path <- NULL
+  version <- 1L
   envelope <- tryCatch(
     {
       if (
@@ -363,16 +406,20 @@ ide_request <- function(encoded, context = ide_context()) {
         rawToChar(jsonlite::base64_dec(encoded)),
         simplifyVector = FALSE
       )
+      if (identical(request$version, 2L) || identical(request$version, 2)) {
+        version <- 2L
+      }
       id <- request_id_value(request$request_id)
       path <- response_location(request$response_path)
       check_request(request)
       bridge_envelope(
         request$operation,
         bridge_dispatch(request, check_context(context)),
-        id
+        id,
+        version = version
       )
     },
-    error = function(error) error_envelope(error, id)
+    error = function(error) error_envelope(error, id, version)
   )
   if (!is.null(path)) {
     return(write_response(envelope, path))

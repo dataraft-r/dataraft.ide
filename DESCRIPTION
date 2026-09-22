@@ -1,6 +1,6 @@
 Package: dataraft.ide
 Title: Metadata Bridge for DataRaft IDE Tools
-Version: 0.1.0.9000
+Version: 0.1.0.9001
 Authors@R: person("Jan-Hendrik", "Weinert", role = c("aut", "cre"), email = "65009403+JanWein@users.noreply.github.com")
 Description: Exposes bounded, allowlisted DataRaft metadata to IDE clients.
     Provides a private file response protocol, explicit trial and data viewer
@@ -8,7 +8,7 @@ Description: Exposes bounded, allowlisted DataRaft metadata to IDE clients.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Depends: R (>= 4.2.0)
-Imports: dataraft.core (>= 0.1.0.9000), fs, jsonlite, rlang
+Imports: dataraft.core (>= 0.1.0.9000), digest, fs, jsonlite, rlang
 Suggests: dataraft.lake (>= 0.1.0.9000), dataraft.catalog (>= 0.1.0.9000), dataraft.adapters (>= 0.1.0.9000), testthat (>= 3.2.0), withr, knitr, rmarkdown, duckdb, bit64, yaml
 Config/testthat/edition: 3
 Roxygen: list(markdown = TRUE)
