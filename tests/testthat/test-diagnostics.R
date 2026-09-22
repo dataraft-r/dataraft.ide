@@ -208,6 +208,18 @@ test_that('combining marks and astral Unicode within and before functions retain
   line <- '"e\u0301😀";\tbad <- function(data) { "e\u0301😀"; data$amount >= 0 }'
   fixture <- source_trial(line)
   item <- ide_diagnostics(retained_trial(fixture))$items[[1L]]
+  if (!identical(item$start$character, 15L) ||
+      !identical(item$end$character, nchar(line) + 2L)) {
+    ref <- attr(fixture$workspace$bad, "srcref")
+    parsed <- get("lines", attr(ref, "srcfile"), inherits = FALSE)
+    file_lines <- source_file(fixture$path, new.env(parent = emptyenv()))$lines
+    # Only this synthetic fixture, never user code, is written to CI logs.
+    dput(list(srcref = as.integer(ref), locale = Sys.getlocale("LC_CTYPE"),
+              original_encoding = Encoding(line), original_points = utf8ToInt(line),
+              parsed_encoding = Encoding(parsed), parsed_points = utf8ToInt(parsed),
+              file_encoding = Encoding(file_lines), file_points = utf8ToInt(file_lines),
+              converted_points = utf8ToInt(enc2utf8(parsed)), actual = item[c("start", "end")]))
+  }
   # Prefix has 14 code points (one astral character), regardless of tab width.
   expect_identical(item$start, list(line = 0L, character = 15L))
   expect_identical(item$end, list(line = 0L, character = nchar(line) + 2L))
