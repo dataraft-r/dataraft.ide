@@ -7,7 +7,8 @@
 ide_request(encoded, context = ide_context())
 }
 \arguments{
-\item{encoded}{Base64 JSON request following the bundled v1 schema.}
+\item{encoded}{Base64 JSON request following the bundled v1 schema, or the
+separate v2 diagnostics schema.}
 
 \item{context}{Context from \code{\link[=ide_context]{ide_context()}}.}
 }

@@ -2,6 +2,7 @@
 
 export(ide_context)
 export(ide_contexts)
+export(ide_diagnostics)
 export(ide_emit)
 export(ide_freshness)
 export(ide_incidents)

@@ -97,3 +97,54 @@ testthat::with_mocked_bindings(
   View = function(x, title) invisible(x),
   .package = 'utils'
 )
+
+# v2 is an explicit diagnostics channel; v1 fixture shapes remain unchanged.
+source_path <- tempfile(fileext = '.R')
+writeLines('failed_rule <- function(data) data$amount >= 0', source_path)
+source_env <- new.env(parent = baseenv())
+source(source_path, local = source_env, keep.source = TRUE)
+workspace$failed_rule <- source_env$failed_rule
+workspace$located <- dataraft.core::dr_product(
+  'located',
+  data.frame(amount = c(-1, 2))
+) |>
+  dataraft.core::dr_add_quality(list(nonnegative = workspace$failed_rule))
+trial_path <- tempfile(fileext = '.json')
+trial <- dataraft.ide::ide_emit(
+  'trial',
+  trial_path,
+  'fixture-located-trial',
+  context,
+  'binding:located'
+)
+for (name in c('diagnostics-v2', 'diagnostics-error-v2')) {
+  path <- tempfile(fileext = '.json')
+  request <- list(
+    version = 2L,
+    operation = 'diagnostics',
+    request_id = name,
+    handle = if (name == 'diagnostics-v2') {
+      trial$data$handle
+    } else {
+      'result:missing'
+    },
+    response_path = path,
+    limit = 100L
+  )
+  encoded <- gsub(
+    '[\r\n]',
+    '',
+    jsonlite::base64_enc(charToRaw(as.character(jsonlite::toJSON(
+      request,
+      auto_unbox = TRUE
+    ))))
+  )
+  dataraft.ide::ide_request(encoded, context)
+  file.copy(
+    path,
+    file.path('inst', 'fixtures', paste0(name, '.json')),
+    overwrite = TRUE
+  )
+  unlink(path)
+}
+unlink(c(source_path, trial_path))
