@@ -411,7 +411,7 @@ ide_incidents <- function(
   } else {
     result <- ide_quality(context, selection, handle, 500L)
     result$items <- Filter(
-      function(x) x$status %in% c("failed", "fail", "error", "not_checked"),
+      function(x) x$status %in% c("failed", "fail", "error", "not_checked", "unvalidated"),
       result$items
     )
   }

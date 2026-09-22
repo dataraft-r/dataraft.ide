@@ -1,5 +1,7 @@
 # dataraft.ide 0.1.0.9004
 
+* Incident metadata retains `unvalidated` checks instead of hiding missing contracts.
+
 * Contract validation and sample quality reads are confined to trusted canonical
   `ide_context(read_roots = ...)` directories. Encoded requests cannot authorize
   additional directories. The default captures the working directory.
