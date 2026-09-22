@@ -4,7 +4,12 @@
 \alias{ide_context}
 \title{Select an explicit metadata workspace and optional connected lake}
 \usage{
-ide_context(workspace = .GlobalEnv, objects = NULL, lake = NULL)
+ide_context(
+  workspace = .GlobalEnv,
+  objects = NULL,
+  lake = NULL,
+  response_root = tempdir()
+)
 }
 \arguments{
 \item{workspace}{Environment containing product, result or table bindings.}
@@ -12,6 +17,10 @@ ide_context(workspace = .GlobalEnv, objects = NULL, lake = NULL)
 \item{objects}{Optional exact binding names to discover, at most 500.}
 
 \item{lake}{Optional already connected DataRaft lake. Never opens a connection.}
+
+\item{response_root}{Trusted existing directory allowed to receive responses.
+Defaults to the R session temporary directory. Configure this in trusted R
+code for an IDE-owned private directory; encoded requests cannot change it.}
 }
 \value{
 An IDE context used by metadata functions.

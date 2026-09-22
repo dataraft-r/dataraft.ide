@@ -11,7 +11,7 @@ ide_abort <- function(code = "invalid_request") {
     unavailable = "An optional DataRaft component is unavailable.",
     execution_failed = "The R operation failed; inspect it locally in R.",
     response_too_large = "The metadata response exceeds the size limit.",
-    unsafe_path = "Use an unused JSON response path in a private existing directory."
+    unsafe_path = "Use an unused JSON response path inside the trusted response directory."
   )
   stop(structure(
     list(message = unname(messages[[code]]), call = NULL, code = code),
@@ -75,6 +75,9 @@ limit_value <- function(x, maximum = 500L) {
 #' @param workspace Environment containing product, result or table bindings.
 #' @param objects Optional exact binding names to discover, at most 500.
 #' @param lake Optional already connected DataRaft lake. Never opens a connection.
+#' @param response_root Trusted existing directory allowed to receive responses.
+#'   Defaults to the R session temporary directory. Configure this in trusted R
+#'   code for an IDE-owned private directory; encoded requests cannot change it.
 #' @returns An IDE context used by metadata functions.
 #' @export
 #' @examples
@@ -82,7 +85,12 @@ limit_value <- function(x, maximum = 500L) {
 #' workspace$orders <- dataraft.core::dr_product("orders", data.frame(id = 1:2))
 #' context <- ide_context(workspace)
 #' # Pass context to ide_request(); see its complete request example.
-ide_context <- function(workspace = .GlobalEnv, objects = NULL, lake = NULL) {
+ide_context <- function(
+  workspace = .GlobalEnv,
+  objects = NULL,
+  lake = NULL,
+  response_root = tempdir()
+) {
   if (!is.environment(workspace)) {
     ide_abort()
   }
@@ -99,7 +107,10 @@ ide_context <- function(workspace = .GlobalEnv, objects = NULL, lake = NULL) {
     ide_abort()
   }
   structure(
-    list(workspace = workspace, objects = objects, lake = lake),
+    list(
+      workspace = workspace, objects = objects, lake = lake,
+      response_root = response_directory(response_root)
+    ),
     class = "dataraft_ide_context"
   )
 }
@@ -107,6 +118,10 @@ ide_context <- function(workspace = .GlobalEnv, objects = NULL, lake = NULL) {
 check_context <- function(context) {
   if (!inherits(context, "dataraft_ide_context")) {
     ide_abort()
+  }
+  # A previously canonical trusted root must not move through a replaced ancestor.
+  if (!identical(response_directory(context$response_root), context$response_root)) {
+    ide_abort("unsafe_path")
   }
   context
 }

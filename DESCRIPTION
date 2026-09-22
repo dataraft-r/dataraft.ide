@@ -1,6 +1,6 @@
 Package: dataraft.ide
 Title: Metadata Bridge for DataRaft IDE Tools
-Version: 0.1.0.9002
+Version: 0.1.0.9003
 Authors@R: person("Jan-Hendrik", "Weinert", role = c("aut", "cre"), email = "65009403+JanWein@users.noreply.github.com")
 Description: Exposes bounded, allowlisted DataRaft metadata to IDE clients.
     Provides a private file response protocol, explicit trial and data viewer
