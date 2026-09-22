@@ -1,0 +1,54 @@
+---
+title: "Inspect and try products without a lake"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Inspect and try products without a lake}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+A workspace can show product definitions and existing quality evidence without installing DuckDB or opening a database connection. The IDE package itself contains no compiled code.
+
+```{r}
+library(dataraft.ide)
+workspace <- new.env(parent = emptyenv())
+workspace$orders <- dataraft.core::dr_product(
+  "orders", data.frame(amount = c(-10, 20))
+) |> dataraft.core::dr_add_quality(~ amount >= 0)
+context <- ide_context(workspace)
+ide_products(context)
+workspace$blocked <- dataraft.core::dr_trial(workspace$orders)
+ide_incidents(context)
+```
+
+Replace the delivery and explicitly try it again. Trial execution never invokes the configured framework destination writer.
+
+```{r}
+workspace$passed <- dataraft.core::dr_trial(
+  workspace$orders, data = data.frame(amount = c(10, 20))
+)
+ide_runs(context)
+```
+
+RDS offers a portable local delivery format for the same compiler-free example. Reading this file is an explicit user action, not IDE discovery.
+
+```{r}
+path <- tempfile(fileext = ".rds")
+saveRDS(data.frame(amount = c(30, 40)), path)
+workspace$delivery <- readRDS(path)
+ide_profile("binding:delivery", context)
+unlink(path)
+```
+
+A private file response contains metadata only. Applications must validate the bundled schema, enforce the one MiB bound and check the request ID.
+
+```{r}
+private <- tempfile("ide-private-")
+dir.create(private, mode = "0700")
+response <- file.path(private, "response.json")
+ide_emit("quality", response, "vignette", context)
+jsonlite::fromJSON(response)$kind
+unlink(private, recursive = TRUE)
+```
+
+Connected lakes add release, contract, lineage and freshness metadata. Supplying `ide_context(workspace, lake = existing_lake)` never opens a new connection. Reports list frozen report identifiers and creation times, not report values or verification results.
