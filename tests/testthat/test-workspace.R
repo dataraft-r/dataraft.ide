@@ -62,7 +62,11 @@ test_that('workspace schemas, quality and lineage contain metadata only', {
   e$table <- data.frame(amount = c(-12345, 12345))
   e$orders <- dataraft.core::dr_product('orders', e$table) |>
     dataraft.core::dr_add_quality(~ amount >= 0)
-  e$result <- dataraft.core::dr_trial(e$orders)
+  e$result <- dataraft.core::dr_run(
+    write = FALSE,
+    stop_on_failure = FALSE,
+    e$orders
+  )
   context <- ide_context(e)
   expect_identical(
     ide_profile('binding:table', context)$columns[[1]]$name,
@@ -108,10 +112,14 @@ test_that('trial retains results and leaves original product unchanged', {
 test_that('viewer bounds retained data before materialization', {
   e <- new.env(parent = emptyenv())
   e$table <- data.frame(id = 1:20)
-  e$result <- dataraft.core::dr_trial(dataraft.core::dr_product(
-    'orders',
-    e$table
-  ))
+  e$result <- dataraft.core::dr_run(
+    write = FALSE,
+    stop_on_failure = FALSE,
+    dataraft.core::dr_product(
+      'orders',
+      e$table
+    )
+  )
   seen <- NULL
   testthat::local_mocked_bindings(
     View = function(x, title) {
@@ -134,10 +142,14 @@ test_that('viewer bounds retained data before materialization', {
 
 test_that('truncation stays visible when a single retained run exceeds the bound', {
   e <- new.env(parent = emptyenv())
-  e$result <- dataraft.core::dr_trial(dataraft.core::dr_product(
-    'orders',
-    data.frame(id = 1)
-  ))
+  e$result <- dataraft.core::dr_run(
+    write = FALSE,
+    stop_on_failure = FALSE,
+    dataraft.core::dr_product(
+      'orders',
+      data.frame(id = 1)
+    )
+  )
   e$result$quality <- data.frame(
     rule = c('one', 'two'),
     status = c('passed', 'failed')
