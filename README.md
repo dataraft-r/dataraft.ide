@@ -23,7 +23,7 @@ request_metadata <- function(operation, handle = NULL) {
   dataraft.ide::ide_request(gsub("[[:space:]]", "", encoded), context)
 }
 request_metadata("products")
-workspace$result <- dataraft.core::dr_trial(workspace$orders)
+workspace$result <- dataraft.core::dr_run(workspace$orders, write = FALSE)
 request_metadata("incidents")
 ```
 
@@ -39,7 +39,7 @@ Since 0.1.0.9003, the trusted client creates a private temporary directory and s
 
 Requests are limited to 16 KiB encoded, responses to 1 MiB, collections to 500 items and explicitly requested samples/views to 1000 rows. Current lake APIs can fetch full registry metadata before these output limits are applied. There is no polling or automatic execution. Invalid operations produce fixed redacted error envelopes. A trusted local session and caller-owned private directory are preconditions, not a remote authentication scheme.
 
-`view` opens bounded data inside R and returns only an acknowledgement. It supports tables, retained tabular results and ordinary lake table releases. Nonretained result outputs and model manifests are not viewable. `trial` explicitly runs `dr_trial()` and retains up to 20 results in the session. Trials disable configured framework writers, but source and transformation functions remain user code with their own potential side effects. A completed request can contain a failed trial result; its status must be shown.
+`view` opens bounded data inside R and returns only an acknowledgement. It supports tables, retained tabular results and ordinary lake table releases. Nonretained result outputs and model manifests are not viewable. `trial` explicitly runs `dr_run(x, write = FALSE, stop_on_failure = FALSE)` and retains up to 20 results in the session. Trials disable configured framework writers, but source and transformation functions remain user code with their own potential side effects. A completed request can contain a failed trial result; its status must be shown.
 
 The optional adapters package supplies safe ODCS 3.2 contract import. `profile` returns only an in-memory table's column names and types. `validate_contract` checks a saved YAML file of at most 1 MiB. `sample_quality` evaluates that contract against the first bounded rows of an explicit in-memory table and returns aggregate evidence. The bridge never guesses editor source positions.
 

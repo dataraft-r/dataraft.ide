@@ -33,7 +33,11 @@ workspace$orders <- dataraft.core::dr_product(
 ) |>
   dataraft.core::dr_add_quality(~ amount >= 0)
 workspace$delivery <- data.frame(amount = c(-1, 2))
-workspace$result <- dataraft.core::dr_run(workspace$orders, write = FALSE, stop_on_failure = FALSE)
+workspace$result <- dataraft.core::dr_run(
+  workspace$orders,
+  write = FALSE,
+  stop_on_failure = FALSE
+)
 context <- dataraft.ide::ide_context(workspace)
 operations <- c(
   'contexts',

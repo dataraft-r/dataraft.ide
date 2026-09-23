@@ -76,9 +76,7 @@ product_summary <- function(x, handle, fallback, kind = object_kind(x)) {
   if (kind == "table") {
     x <- list()
   }
-  if (inherits(x, "dr_product_workflow")) {
-    x <- workflow_definition(x)
-  }
+
   product <- kind == "product"
   list(
     handle = handle,
@@ -181,9 +179,7 @@ ide_product <- function(handle, context = ide_context()) {
       )
     ))
   }
-  if (inherits(x, "dr_product_workflow")) {
-    x <- workflow_definition(x)
-  }
+
   if (resolved$kind == "table") {
     x <- list()
   }
@@ -600,15 +596,6 @@ ide_lineage <- function(
     }
   }
   bounded_lineage(nodes, edges, limit, truncated)
-}
-
-workflow_definition <- function(x) {
-  product <- field(x, "product")
-  if (is.null(product)) {
-    product <- list()
-  }
-  product$sources <- c(field(product, "sources"), field(x, "sources"))
-  product
 }
 
 lake_definitions <- function(lake) {

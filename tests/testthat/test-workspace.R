@@ -10,8 +10,7 @@ test_that('discovery never evaluates active, delayed or executable definitions',
     owner = 'Jane Person',
     description = 'claim details'
   )
-  e$flow <- dataraft.core::dr_workflow() |>
-    dataraft.core::dr_add_product(e$orders)
+  e$flow <- e$orders
   before <- e$orders
   x <- ide_products(ide_context(e))
   expect_setequal(
@@ -89,11 +88,10 @@ test_that('workspace schemas, quality and lineage contain metadata only', {
 
 test_that('trial retains results and leaves original product unchanged', {
   e <- new.env(parent = emptyenv())
-  e$flow <- dataraft.core::dr_workflow() |>
-    dataraft.core::dr_add_product(dataraft.core::dr_product(
-      'orders',
-      data.frame(id = 1:3)
-    ))
+  e$flow <- dataraft.core::dr_product(
+    'orders',
+    data.frame(id = 1:3)
+  )
   before <- serialize(e$flow, NULL)
   withr::defer({
     .ide_state$results <- list()

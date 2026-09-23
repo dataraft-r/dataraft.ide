@@ -163,7 +163,7 @@ binding_object <- function(name, context) {
 }
 
 object_kind <- function(x) {
-  if (inherits(x, c("dr_product", "dr_product_workflow"))) {
+  if (inherits(x, "dr_product")) {
     "product"
   } else if (inherits(x, "dr_run_result")) {
     "result"
