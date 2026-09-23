@@ -1,7 +1,7 @@
 test_that('clients have one request boundary and an explicit context constructor', {
   expect_setequal(
     getNamespaceExports('dataraft.ide'),
-    c('ide_context', 'ide_request')
+    c('ide_context', 'ide_request', 'dr_init_product')
   )
   expect_error(
     getExportedValue('dataraft.ide', 'ide_products'),
