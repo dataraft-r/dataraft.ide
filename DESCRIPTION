@@ -13,9 +13,6 @@ Suggests: dataraft.lake (>= 0.1.0.9000), dataraft.adapters (>= 0.1.0.9005), test
 Config/testthat/edition: 3
 Roxygen: list(markdown = TRUE)
 VignetteBuilder: knitr
-Remotes: dataraft-r/dataraft.core@fix/deep-review-2,
-    dataraft-r/dataraft.lake@fix/deep-review-2,
-    dataraft-r/dataraft.adapters@fix/deep-review-2
 URL: https://github.com/dataraft-r/dataraft.ide
 BugReports: https://github.com/dataraft-r/dataraft.ide/issues
 Config/roxygen2/version: 8.1.0
