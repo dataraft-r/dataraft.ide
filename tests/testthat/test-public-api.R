@@ -23,7 +23,9 @@ test_that('independent channel schemas retain their existing wire discriminators
       schema[['$id']],
       paste0('https://dataraft-r.github.io/dataraft.ide/schema/', name)
     )
-    expect_equal(schema$properties$contract$const,
-                 if (channel == 'metadata') 1 else 2)
+    expect_equal(
+      schema$properties$contract$const,
+      if (channel == 'metadata') 1 else 2
+    )
   }
 })

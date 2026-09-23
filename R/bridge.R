@@ -17,20 +17,30 @@ bridge_operations <- c(
 )
 
 response_directory <- function(path) {
-  if (!is.character(path) || length(path) != 1L || is.na(path) ||
-      !fs::is_absolute_path(path)) {
+  if (
+    !is.character(path) ||
+      length(path) != 1L ||
+      is.na(path) ||
+      !fs::is_absolute_path(path)
+  ) {
     ide_abort("unsafe_path")
   }
-  tryCatch({
-    info <- fs::file_info(path, follow = FALSE)
-    if (is.na(info$type) || info$type != "directory") {
-      ide_abort("unsafe_path")
-    }
-    normalizePath(path, winslash = "/", mustWork = TRUE)
-  }, error = function(e) ide_abort("unsafe_path"))
+  tryCatch(
+    {
+      info <- fs::file_info(path, follow = FALSE)
+      if (is.na(info$type) || info$type != "directory") {
+        ide_abort("unsafe_path")
+      }
+      normalizePath(path, winslash = "/", mustWork = TRUE)
+    },
+    error = function(e) ide_abort("unsafe_path")
+  )
 }
 
-response_location <- function(path, response_root = response_directory(tempdir())) {
+response_location <- function(
+  path,
+  response_root = response_directory(tempdir())
+) {
   if (
     !is.character(path) ||
       length(path) != 1L ||
@@ -109,7 +119,9 @@ error_envelope <- function(error, request_id = NULL, version = 1L) {
 }
 
 write_response <- function(
-  envelope, path, max_bytes = 1048576L,
+  envelope,
+  path,
+  max_bytes = 1048576L,
   response_root = response_directory(tempdir())
 ) {
   path <- response_location(path, response_root)
@@ -232,7 +244,7 @@ bridge_dispatch <- function(request, context) {
     view = run_action(operation, handle, context, row_limit),
     trial = run_action(operation, handle, context, row_limit),
     profile = ide_profile(handle, context),
-    validate_contract = ide_validate_contract(request$file_path),
+    validate_contract = ide_validate_contract(request$file_path, context),
     sample_quality = ide_sample_quality(
       handle,
       request$file_path,
@@ -411,7 +423,7 @@ ide_emit <- function(
 #' exposes a production publication operation. Response writes must remain inside
 #' the canonical `response_root` configured by trusted [ide_context()] code.
 #' This is a path boundary for requests, not a sandbox against R code running
-#' as the same user. Contract file reads retain their existing behavior.
+#' as the same user. Contract reads must stay within `context$contract_root`.
 #' @param encoded Base64 JSON request following the metadata-v1 schema (wire version 1), or the
 #'   diagnostics-v1 schema (wire version 2).
 #' @param context Context from [ide_context()].
@@ -468,7 +480,11 @@ ide_request <- function(encoded, context = ide_context()) {
     error = function(error) error_envelope(error, id, version)
   )
   if (!is.null(path)) {
-    return(write_response(envelope, path, response_root = context$response_root))
+    return(write_response(
+      envelope,
+      path,
+      response_root = context$response_root
+    ))
   }
   invisible(envelope)
 }

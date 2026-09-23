@@ -8,7 +8,8 @@ ide_context(
   workspace = .GlobalEnv,
   objects = NULL,
   lake = NULL,
-  response_root = tempdir()
+  response_root = tempdir(),
+  contract_root = getwd()
 )
 }
 \arguments{
@@ -21,6 +22,9 @@ ide_context(
 \item{response_root}{Trusted existing directory allowed to receive responses.
 Defaults to the R session temporary directory. Configure this in trusted R
 code for an IDE-owned private directory; encoded requests cannot change it.}
+
+\item{contract_root}{Trusted existing directory containing readable contracts.
+Defaults to the working directory. Requests cannot broaden this root.}
 }
 \value{
 An IDE context used by metadata functions.

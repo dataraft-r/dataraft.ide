@@ -24,7 +24,7 @@ Trials can execute user transformations and read sources; this bridge never
 exposes a production publication operation. Response writes must remain inside
 the canonical \code{response_root} configured by trusted \code{\link[=ide_context]{ide_context()}} code.
 This is a path boundary for requests, not a sandbox against R code running
-as the same user. Contract file reads retain their existing behavior.
+as the same user. Contract reads must stay within \code{context$contract_root}.
 }
 \examples{
 private <- tempfile("ide-private-")

@@ -8,7 +8,7 @@
 \usage{
 ide_profile(handle, context = ide_context())
 
-ide_validate_contract(file_path)
+ide_validate_contract(file_path, context = ide_context())
 
 ide_sample_quality(
   handle,

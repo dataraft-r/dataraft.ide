@@ -146,8 +146,10 @@ test_that('trusted response roots bound writes by canonical path components', {
     expect_identical(result$error$code, 'unsafe_path')
     expect_false(file.exists(path))
   }
-  for (path in c(file.path(root, 'valid.json'),
-                 file.path(root, 'nested', 'valid.json'))) {
+  for (path in c(
+    file.path(root, 'valid.json'),
+    file.path(root, 'nested', 'valid.json')
+  )) {
     request$response_path <- path
     result <- ide_request(request_wire(request), context)
     expect_identical(result$kind, 'contexts')
@@ -159,22 +161,39 @@ test_that('response root configuration is trusted and fails closed', {
   base <- withr::local_tempdir()
   root <- file.path(base, 'private')
   dir.create(root)
-  expect_identical(ide_context()$response_root,
-                   normalizePath(tempdir(), winslash = '/', mustWork = TRUE))
-  for (root_value in list(NULL, NA_character_, character(), 'relative',
-                         file.path(base, 'missing'))) {
-    expect_error(ide_context(response_root = root_value),
-                 class = 'dataraft_ide_error')
+  expect_identical(
+    ide_context()$response_root,
+    normalizePath(tempdir(), winslash = '/', mustWork = TRUE)
+  )
+  for (root_value in list(
+    NULL,
+    NA_character_,
+    character(),
+    'relative',
+    file.path(base, 'missing')
+  )) {
+    expect_error(
+      ide_context(response_root = root_value),
+      class = 'dataraft_ide_error'
+    )
   }
   context <- ide_context(response_root = root)
-  request <- list(version = 1, operation = 'contexts', request_id = 'override',
-                  response_path = file.path(root, 'response.json'),
-                  response_root = base)
-  expect_identical(ide_request(request_wire(request), context)$error$code,
-                   'invalid_request')
+  request <- list(
+    version = 1,
+    operation = 'contexts',
+    request_id = 'override',
+    response_path = file.path(root, 'response.json'),
+    response_root = base
+  )
+  expect_identical(
+    ide_request(request_wire(request), context)$error$code,
+    'invalid_request'
+  )
   request$response_path <- file.path(base, 'outside.json')
-  expect_identical(ide_request(request_wire(request), context)$error$code,
-                   'unsafe_path')
+  expect_identical(
+    ide_request(request_wire(request), context)$error$code,
+    'unsafe_path'
+  )
   expect_false(file.exists(request$response_path))
 })
 
@@ -187,10 +206,16 @@ test_that('symlinked ancestors cannot redirect responses outside the root', {
   dir.create(file.path(outside, 'nested'))
   fs::link_create(outside, file.path(root, 'redirect'))
   context <- ide_context(response_root = root)
-  request <- list(version = 1, operation = 'contexts', request_id = 'symlink',
-                  response_path = file.path(root, 'redirect', 'nested', 'response.json'))
-  expect_identical(ide_request(request_wire(request), context)$error$code,
-                   'unsafe_path')
+  request <- list(
+    version = 1,
+    operation = 'contexts',
+    request_id = 'symlink',
+    response_path = file.path(root, 'redirect', 'nested', 'response.json')
+  )
+  expect_identical(
+    ide_request(request_wire(request), context)$error$code,
+    'unsafe_path'
+  )
   expect_false(file.exists(file.path(outside, 'nested', 'response.json')))
 })
 
@@ -206,9 +231,10 @@ test_that('writers recheck boundaries before creating temporary responses', {
   path <- response_location(file.path(child, 'response.json'), root)
   unlink(child, recursive = TRUE)
   fs::link_create(outside, child)
-  expect_error(write_response(bridge_envelope('contexts'), path,
-                             response_root = root),
-               class = 'dataraft_ide_error')
+  expect_error(
+    write_response(bridge_envelope('contexts'), path, response_root = root),
+    class = 'dataraft_ide_error'
+  )
   expect_length(list.files(outside, all.files = TRUE, no.. = TRUE), 0L)
 })
 
@@ -226,9 +252,16 @@ test_that('the canonical root cannot move between dispatch and serialization', {
   path <- file.path(context$response_root, 'response.json')
   unlink(parent, recursive = TRUE)
   fs::link_create(outside, parent)
-  expect_error(write_response(bridge_envelope('contexts'), path,
-                             response_root = context$response_root),
-               class = 'dataraft_ide_error')
-  expect_length(list.files(file.path(outside, 'private'),
-                           all.files = TRUE, no.. = TRUE), 0L)
+  expect_error(
+    write_response(
+      bridge_envelope('contexts'),
+      path,
+      response_root = context$response_root
+    ),
+    class = 'dataraft_ide_error'
+  )
+  expect_length(
+    list.files(file.path(outside, 'private'), all.files = TRUE, no.. = TRUE),
+    0L
+  )
 })

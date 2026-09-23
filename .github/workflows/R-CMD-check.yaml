@@ -18,11 +18,14 @@ jobs:
           - {os: windows-latest, profile: minimal}
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      FAMILY_BRANCH: ${{ github.head_ref }}
       R_KEEP_PKG_SOURCE: yes
       _R_CHECK_FORCE_SUGGESTS_: "false"
       DATARAFT_IDE_TEST_PROFILE: ${{ matrix.profile }}
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      - name: Obtain family sources from the central manifest
+        run: python scripts/checkout-family.py dataraft.ide
       - uses: r-lib/actions/setup-r@f9a764fea8d5c63df6ef9a5c7795bf7deb5d7e05
         with:
           r-version: '4.5.1'
@@ -39,7 +42,19 @@ jobs:
           options(repos = c(CRAN = snapshot))
           install.packages(c("remotes", "rcmdcheck", "testthat", "withr", "knitr", "rmarkdown"))
           full <- Sys.getenv("DATARAFT_IDE_TEST_PROFILE") == "full"
-          remotes::install_deps(dependencies = if (full) TRUE else NA, upgrade = "never")
+          names <- if (full) c("core", "lake", "metrics", "dbt", "adapters") else "core"
+          paths <- file.path("family", paste0("dataraft.", names))
+          descriptions <- c(file.path(paths, "DESCRIPTION"), "DESCRIPTION")
+          fields <- if (full) c("Imports", "Suggests") else "Imports"
+          dependencies <- unique(unlist(lapply(descriptions, function(path) {
+            entries <- read.dcf(path, fields = fields)
+            trimws(gsub("\\s*\\([^)]*\\)", "", unlist(strsplit(paste(entries[!is.na(entries)], collapse = ","), ","))))
+          })))
+          external <- dependencies[nzchar(dependencies) & !startsWith(dependencies, "dataraft.")]
+          install.packages(setdiff(external, rownames(installed.packages())))
+          for (path in paths) {
+            stopifnot(system2(file.path(R.home("bin"), "R"), c("CMD", "INSTALL", shQuote(path))) == 0L)
+          }
       - name: Check package including examples and tests
         shell: Rscript {0}
         run: |
