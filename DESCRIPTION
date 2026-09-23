@@ -8,14 +8,11 @@ Description: Exposes bounded, allowlisted DataRaft metadata to IDE clients.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Depends: R (>= 4.2.0)
-Imports: dataraft.core (>= 0.1.0.9006), digest, fs, jsonlite, rlang
-Suggests: dataraft.lake (>= 0.1.0.9006), dataraft.adapters (>= 0.1.0.9006), testthat (>= 3.2.0), withr, knitr, rmarkdown, duckdb, bit64, yaml
+Imports: dataraft.core (>= 0.1.0.9005), digest, fs, jsonlite, rlang
+Suggests: dataraft.lake (>= 0.1.0.9000), dataraft.adapters (>= 0.1.0.9005), testthat (>= 3.2.0), withr, knitr, rmarkdown, duckdb, bit64, yaml
 Config/testthat/edition: 3
 Roxygen: list(markdown = TRUE)
 VignetteBuilder: knitr
-Remotes: dataraft-r/dataraft.core@main,
-    dataraft-r/dataraft.lake@main,
-    dataraft-r/dataraft.adapters@main
 URL: https://github.com/dataraft-r/dataraft.ide
 BugReports: https://github.com/dataraft-r/dataraft.ide/issues
 Config/roxygen2/version: 8.1.0
