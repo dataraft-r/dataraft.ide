@@ -208,8 +208,13 @@ test_that('combining marks and astral Unicode within and before functions retain
   # Avoid mixing Unicode escapes and literal non-BMP characters in an R string:
   # Windows can replace the literal character while parsing that combination.
   unicode <- intToUtf8(c(101L, 769L, 128512L))
-  line <- paste0('"', unicode, '";\tbad <- function(data) { "', unicode,
-                 '"; data$amount >= 0 }')
+  line <- paste0(
+    '"',
+    unicode,
+    '";\tbad <- function(data) { "',
+    unicode,
+    '"; data$amount >= 0 }'
+  )
   points <- utf8ToInt(line)
   expect_identical(sum(points == 128512L), 2L)
   expect_identical(sum(points == 769L), 2L)

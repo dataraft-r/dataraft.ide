@@ -78,6 +78,8 @@ limit_value <- function(x, maximum = 500L) {
 #' @param response_root Trusted existing directory allowed to receive responses.
 #'   Defaults to the R session temporary directory. Configure this in trusted R
 #'   code for an IDE-owned private directory; encoded requests cannot change it.
+#' @param contract_root Trusted existing directory containing readable contracts.
+#'   Defaults to the working directory. Requests cannot broaden this root.
 #' @returns An IDE context used by metadata functions.
 #' @export
 #' @examples
@@ -89,7 +91,8 @@ ide_context <- function(
   workspace = .GlobalEnv,
   objects = NULL,
   lake = NULL,
-  response_root = tempdir()
+  response_root = tempdir(),
+  contract_root = getwd()
 ) {
   if (!is.environment(workspace)) {
     ide_abort()
@@ -108,8 +111,11 @@ ide_context <- function(
   }
   structure(
     list(
-      workspace = workspace, objects = objects, lake = lake,
-      response_root = response_directory(response_root)
+      workspace = workspace,
+      objects = objects,
+      lake = lake,
+      response_root = response_directory(response_root),
+      contract_root = response_directory(contract_root)
     ),
     class = "dataraft_ide_context"
   )
@@ -120,7 +126,14 @@ check_context <- function(context) {
     ide_abort()
   }
   # A previously canonical trusted root must not move through a replaced ancestor.
-  if (!identical(response_directory(context$response_root), context$response_root)) {
+  if (
+    !identical(response_directory(context$response_root), context$response_root)
+  ) {
+    ide_abort("unsafe_path")
+  }
+  if (
+    !identical(response_directory(context$contract_root), context$contract_root)
+  ) {
     ide_abort("unsafe_path")
   }
   context

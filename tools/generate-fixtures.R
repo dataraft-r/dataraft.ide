@@ -1,10 +1,24 @@
 # Fixture generation exercises the same public request boundary as clients.
-emit_fixture <- function(kind, response_path, request_id, context,
-                         handle = NULL, file_path = NULL) {
-  request <- list(version = 1L, operation = kind, response_path = response_path,
-                  request_id = request_id)
-  if (!is.null(handle)) request$handle <- handle
-  if (!is.null(file_path)) request$file_path <- file_path
+emit_fixture <- function(
+  kind,
+  response_path,
+  request_id,
+  context,
+  handle = NULL,
+  file_path = NULL
+) {
+  request <- list(
+    version = 1L,
+    operation = kind,
+    response_path = response_path,
+    request_id = request_id
+  )
+  if (!is.null(handle)) {
+    request$handle <- handle
+  }
+  if (!is.null(file_path)) {
+    request$file_path <- file_path
+  }
   encoded <- jsonlite::base64_enc(charToRaw(as.character(
     jsonlite::toJSON(request, auto_unbox = TRUE)
   )))

@@ -472,10 +472,10 @@ ide_freshness <- function(
   if (!inherits(lake, "dr_lake")) {
     return(collection(list(), limit))
   }
-  if (!requireNamespace("dataraft.catalog", quietly = TRUE)) {
+  if (!requireNamespace("dataraft.adapters", quietly = TRUE)) {
     ide_abort("unavailable")
   }
-  rows <- dataraft.catalog::dr_freshness(lake)
+  rows <- dataraft.adapters::dr_freshness(lake)
   if (!is.null(handle)) {
     rows <- rows[
       rows$asset == resolve_handle(handle, context)$id,
@@ -518,14 +518,18 @@ bounded_lineage <- function(nodes, edges, limit, truncated = FALSE) {
   }
   kept_nodes <- utils::head(nodes, limit)
   ids <- vapply(kept_nodes, `[[`, character(1), "id")
-  kept_edges <- Filter(function(edge) {
-    edge$from %in% ids && edge$to %in% ids
-  }, edges)
+  kept_edges <- Filter(
+    function(edge) {
+      edge$from %in% ids && edge$to %in% ids
+    },
+    edges
+  )
   kept_edges <- utils::head(kept_edges, limit)
   list(
     nodes = unname(kept_nodes),
     edges = unname(kept_edges),
-    truncated = truncated || length(nodes) > length(kept_nodes) ||
+    truncated = truncated ||
+      length(nodes) > length(kept_nodes) ||
       length(edges) > length(kept_edges)
   )
 }
@@ -560,7 +564,9 @@ ide_lineage <- function(
     ids <- unique(unlist(lapply(edges, function(edge) c(edge$from, edge$to))))
     return(bounded_lineage(
       lapply(ids, function(id) list(id = id, kind = "asset")),
-      edges, limit, truncated
+      edges,
+      limit,
+      truncated
     ))
   }
   discovery <- if (is.null(handle)) {
@@ -577,7 +583,8 @@ ide_lineage <- function(
       next
     }
     detail <- ide_product(product$handle, context)
-    truncated <- truncated || isTRUE(detail$source_count > length(detail$sources))
+    truncated <- truncated ||
+      isTRUE(detail$source_count > length(detail$sources))
     nodes[[length(nodes) + 1L]] <- list(id = detail$id, kind = "product")
     for (source in detail$sources) {
       id <- source$product_id

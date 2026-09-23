@@ -33,7 +33,25 @@ ide_profile <- function(handle, context = ide_context()) {
   list(id = NULL, version = NULL, columns = unname(columns), key = list())
 }
 
-read_odcs <- function(file_path) {
+read_odcs <- function(file_path, context = ide_context()) {
+  context <- check_context(context)
+  if (
+    !is.character(file_path) ||
+      length(file_path) != 1L ||
+      is.na(file_path) ||
+      !fs::is_absolute_path(file_path)
+  ) {
+    ide_abort("unsafe_path")
+  }
+  real <- tryCatch(
+    normalizePath(file_path, winslash = "/", mustWork = TRUE),
+    error = function(e) ide_abort("unsafe_path")
+  )
+  root <- context$contract_root
+  if (!startsWith(real, paste0(sub("/+$", "", root), "/"))) {
+    ide_abort("unsafe_path")
+  }
+  file_path <- real
   if (!requireNamespace("dataraft.adapters", quietly = TRUE)) {
     ide_abort("unavailable")
   }
@@ -55,8 +73,8 @@ read_odcs <- function(file_path) {
 
 #' @rdname ide_profile
 #' @keywords internal
-ide_validate_contract <- function(file_path) {
-  contract_metadata(read_odcs(file_path))
+ide_validate_contract <- function(file_path, context = ide_context()) {
+  contract_metadata(read_odcs(file_path, context))
 }
 
 #' @rdname ide_profile
@@ -71,7 +89,7 @@ ide_sample_quality <- function(
   if (!identical(resolved$kind, "table")) {
     ide_abort("unsupported")
   }
-  contract <- read_odcs(file_path)
+  contract <- read_odcs(file_path, context)
   rows <- utils::head(resolved$object, limit_value(row_limit, 1000L))
   quality <- dataraft.core::dr_quality(dataraft.core::dr_validate(
     rows,

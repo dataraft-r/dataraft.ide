@@ -1,3 +1,10 @@
+# dataraft.ide 0.1.0.9004
+
+* Confine contract reads to a trusted canonical contract_root, including traversal and symlink checks.
+* Resolve CI dependencies using the umbrella family manifest, including the Windows profile.
+
+* Use the umbrella CI manifest as the single immutable family dependency lock.
+
 # dataraft.ide 0.1.0.9003
 
 * Bound response writes to a trusted `ide_context(response_root = ...)`, defaulting

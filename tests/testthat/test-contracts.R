@@ -6,13 +6,16 @@ test_that('ODCS import and sample checks stay bounded and do not export rows', {
     columns = c(amount = 'numeric')
   )
   dataraft.adapters::dr_contract_odcs(contract, path)
-  expect_identical(ide_validate_contract(path)$id, 'orders')
+  expect_identical(
+    ide_validate_contract(path, ide_context(contract_root = dirname(path)))$id,
+    'orders'
+  )
   e <- new.env(parent = emptyenv())
   e$orders <- data.frame(amount = c(12345, 67890))
   quality <- ide_sample_quality(
     'binding:orders',
     path,
-    ide_context(e),
+    ide_context(e, contract_root = dirname(path)),
     row_limit = 1
   )
   expect_gt(length(quality$items), 0)
@@ -24,13 +27,16 @@ test_that('ODCS import and sample checks stay bounded and do not export rows', {
     ide_sample_quality(
       'binding:orders',
       path,
-      ide_context(e),
+      ide_context(e, contract_root = dirname(path)),
       row_limit = 1001
     ),
     class = 'dataraft_ide_error'
   )
   writeLines('!!expr stop("secret")', path)
-  expect_error(ide_validate_contract(path), class = "error")
+  expect_error(
+    ide_validate_contract(path, ide_context(contract_root = dirname(path))),
+    class = "error"
+  )
 })
 
 test_that('ODCS named expression evidence counts the explicit bounded prefix', {
@@ -47,8 +53,18 @@ test_that('ODCS named expression evidence counts the explicit bounded prefix', {
   dataraft.adapters::dr_contract_odcs(contract, path)
   e <- new.env(parent = emptyenv())
   e$delivery <- data.frame(amount = c(-10, 20, -30))
-  prefix <- ide_sample_quality('binding:delivery', path, ide_context(e), 2L)
-  full <- ide_sample_quality('binding:delivery', path, ide_context(e), 3L)
+  prefix <- ide_sample_quality(
+    'binding:delivery',
+    path,
+    ide_context(e, contract_root = dirname(path)),
+    2L
+  )
+  full <- ide_sample_quality(
+    'binding:delivery',
+    path,
+    ide_context(e, contract_root = dirname(path)),
+    3L
+  )
   select <- function(x) {
     Filter(function(rule) identical(rule$rule, 'nonnegative'), x$items)[[1]]
   }
