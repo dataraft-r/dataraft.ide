@@ -3,3 +3,6 @@
 ^tools$
 ^README\.md$
 ^scripts$
+^integration$
+^family$
+^check$

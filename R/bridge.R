@@ -167,7 +167,11 @@ run_action <- function(operation, handle, context, row_limit) {
       ide_abort("unsupported")
     }
     source_refs <- capture_rule_sources(resolved$object)
-    result <- dataraft.core::dr_trial(resolved$object)
+    result <- dataraft.core::dr_run(
+      write = FALSE,
+      stop_on_failure = FALSE,
+      resolved$object
+    )
     .ide_state$serial <- .ide_state$serial + 1L
     result_handle <- paste0("result:r", .ide_state$serial)
     .ide_state$results[[result_handle]] <- result

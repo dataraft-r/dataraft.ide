@@ -31,14 +31,14 @@ request_metadata <- function(operation, handle = NULL) {
   dataraft.ide::ide_request(gsub("[[:space:]]", "", encoded), context)
 }
 request_metadata("products")
-workspace$blocked <- dataraft.core::dr_trial(workspace$orders)
+workspace$blocked <- dataraft.core::dr_run(write = FALSE, stop_on_failure = FALSE, workspace$orders)
 request_metadata("incidents")
 ```
 
 Replace the delivery and explicitly try it again. Trial execution never invokes the configured framework destination writer.
 
 ```{r}
-workspace$passed <- dataraft.core::dr_trial(
+workspace$passed <- dataraft.core::dr_run(write = FALSE, stop_on_failure = FALSE,
   workspace$orders, data = data.frame(amount = c(10, 20))
 )
 request_metadata("runs")

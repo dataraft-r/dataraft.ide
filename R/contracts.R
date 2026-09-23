@@ -47,7 +47,7 @@ read_odcs <- function(file_path, context = ide_context()) {
     normalizePath(file_path, winslash = "/", mustWork = TRUE),
     error = function(e) ide_abort("unsafe_path")
   )
-  root <- context$contract_root
+  root <- response_directory(context$contract_root)
   if (!startsWith(real, paste0(sub("/+$", "", root), "/"))) {
     ide_abort("unsafe_path")
   }

@@ -1,3 +1,7 @@
+# dataraft.ide 0.1.0.9005
+
+* Contract-root containment canonicalizes both sides at read time.
+
 # dataraft.ide 0.1.0.9004
 
 * Confine contract reads to a trusted canonical contract_root, including traversal and symlink checks.
