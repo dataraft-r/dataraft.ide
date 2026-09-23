@@ -2,3 +2,4 @@
 
 export(ide_context)
 export(ide_request)
+export(dr_init_product)
