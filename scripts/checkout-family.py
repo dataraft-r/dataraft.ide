@@ -40,7 +40,15 @@ for name, spec in lock["packages"].items():
     if name == component:
         sha = subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
     else:
-        target = "refs/heads/main" if mode == "head" else spec["ref"]
+        target = spec["ref"]
+        if mode == "head":
+            target = "refs/heads/main"
+            if branch:
+                candidate = "refs/heads/" + branch
+                remote = "https://github.com/dataraft-r/" + name + ".git"
+                if subprocess.check_output(["git", "ls-remote", "--heads", remote,
+                                            candidate], text=True).strip():
+                    target = candidate
         if mode == "pinned" and not re.fullmatch(r"[0-9a-f]{40}", target):
             raise SystemExit("Family refs must be immutable commit SHAs")
         sha = checkout(name, target, pathlib.Path("family") / name)
