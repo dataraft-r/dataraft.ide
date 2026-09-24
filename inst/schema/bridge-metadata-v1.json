@@ -334,7 +334,8 @@
         "can_view",
         "contract",
         "sources",
-        "rules"
+        "rules",
+        "guarantees"
       ],
       "properties": {
         "handle": {
@@ -402,6 +403,9 @@
           "items": {
             "$ref": "#/$defs/rule"
           }
+        },
+        "guarantees": {
+          "$ref": "#/$defs/guarantees"
         }
       }
     },
@@ -955,6 +959,129 @@
         },
         "truncated": {
           "type": "boolean"
+        }
+      }
+    },
+    "slaGuarantee": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "refresh",
+        "available_by",
+        "timezone",
+        "freshness"
+      ],
+      "properties": {
+        "refresh": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "available_by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "timezone": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "freshness": {
+          "type": [
+            "number",
+            "null"
+          ]
+        }
+      }
+    },
+    "portGuarantee": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "direction",
+        "version",
+        "access",
+        "contract_version",
+        "sla"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "direction": {
+          "enum": [
+            "input",
+            "output"
+          ]
+        },
+        "version": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "access": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "contract_version": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "sla": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/slaGuarantee"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "guarantees": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "lifecycle",
+        "inputs",
+        "outputs",
+        "policy_count"
+      ],
+      "properties": {
+        "lifecycle": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "inputs": {
+          "type": "array",
+          "maxItems": 100,
+          "items": {
+            "$ref": "#/$defs/portGuarantee"
+          }
+        },
+        "outputs": {
+          "type": "array",
+          "maxItems": 100,
+          "items": {
+            "$ref": "#/$defs/portGuarantee"
+          }
+        },
+        "policy_count": {
+          "type": "integer",
+          "minimum": 0
         }
       }
     }
