@@ -19,6 +19,7 @@ jobs:
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       FAMILY_BRANCH: ${{ github.head_ref }}
+      DATARAFT_FAMILY_MODE: ${{ github.event_name == 'pull_request' && 'head' || 'pinned' }}
       R_KEEP_PKG_SOURCE: yes
       _R_CHECK_FORCE_SUGGESTS_: "false"
       DATARAFT_IDE_TEST_PROFILE: ${{ matrix.profile }}

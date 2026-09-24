@@ -92,11 +92,18 @@ port_metadata <- function(x, direction) {
 }
 
 product_guarantees <- function(x, lifecycle = NULL) {
+  policies <- c(field(x, "policies"), getOption("dataraft.policies", list()))
   list(
     lifecycle = lifecycle,
     inputs = port_metadata(x, "input"),
     outputs = port_metadata(x, "output"),
-    policy_count = length(getOption("dataraft.policies", list()))
+    policy_count = length(policies),
+    policies = unname(lapply(utils::head(policies, 100L), function(policy) list(
+      id = text_value(field(policy, "id")),
+      version = text_value(field(policy, "version")),
+      when = text_value(field(policy, "when")),
+      action = text_value(field(policy, "action"))
+    )))
   )
 }
 

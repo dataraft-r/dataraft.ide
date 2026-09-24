@@ -108,12 +108,15 @@ test_that('product detail exposes bounded port guarantees without endpoint data'
   skip_if_not_installed('dataraft.adapters')
   e <- new.env(parent = emptyenv())
   e$orders <- dataraft.core::dr_product('orders', data.frame(id = 1L)) |>
+    dataraft.core::dr_add_policy(dataraft.core::dr_policy('owner', require = 'owner')) |>
     dataraft.core::dr_add_output(dataraft.core::dr_output(
       'warehouse', dataraft.adapters::dr_target_rds(tempfile()),
       sla = dataraft.core::dr_sla(available_by = '08:00', timezone = 'UTC')))
   detail <- ide_product('binding:orders', ide_context(e))
   expect_identical(detail$guarantees$outputs[[1]]$id, 'warehouse')
   expect_identical(detail$guarantees$outputs[[1]]$sla$available_by, '08:00')
+  expect_identical(detail$guarantees$policy_count, 1L)
+  expect_identical(detail$guarantees$policies[[1]]$id, 'owner')
   expect_null(detail$guarantees$lifecycle)
   expect_false(grepl('endpoint|tempfile', jsonlite::toJSON(detail, auto_unbox = TRUE)))
 })
