@@ -1,3 +1,7 @@
+# dataraft.ide 0.1.0.9007
+
+* Product detail metadata now exposes bounded lifecycle state, port interfaces, delivery SLAs and the configured policy count for structured Positron views. Adapter endpoints and row data remain in R.
+
 # dataraft.ide 0.1.0.9006
 
 * Use the current product API throughout code, examples and tests; development compatibility wrappers are removed.
