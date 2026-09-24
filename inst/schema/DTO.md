@@ -6,7 +6,7 @@ Operations products, contexts, quality, releases, runs, freshness and incidents 
 
 * Context: `{handle,label,kind}`; kind workspace or lake. Workspace handle is `workspace`.
 * Product summary: `{handle,id,version,status,kind,owner,description,source_count,rule_count,can_trial,can_view}`. Nullable text fields. kind product/result/table/asset.
-* Product detail adds `{contract,sources,rules}`. contract is null or `{id,version,columns:[{name,type,required}],key:[string]}`. Sources `{name,kind,product_id}`. Rules `{id,engine,action,dimension}`. No expressions, connections or raw source locations.
+* Product detail adds `{contract,sources,rules,guarantees}`. contract is null or `{id,version,columns:[{name,type,required}],key:[string]}`. Sources `{name,kind,product_id}`. Rules `{id,engine,action,dimension}`. Guarantees contain nullable lifecycle, policy count, and bounded input/output ports with ID, version, access, contract version and optional SLA timing. No expressions, connections, destinations or raw source locations.
 * Lineage node `{id,kind}`; edge `{from,to,relation}`.
 * Quality/incident `{run_id,asset,rule,status,severity,engine,stage,n_failed,n_total}`. Counts nullable numbers. No failure rows/messages/details.
 * Release `{release_id,asset,run_id,release_order,published_at,quality,business_date,parent_release}`.

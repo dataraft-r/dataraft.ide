@@ -69,6 +69,37 @@ sources_metadata <- function(x) {
   }))
 }
 
+port_metadata <- function(x, direction) {
+  ports <- field(x, if (identical(direction, "input")) "input_ports" else "output_ports")
+  if (!is.list(ports)) return(list())
+  unname(lapply(seq_len(min(length(ports), 100L)), function(i) {
+    port <- ports[[i]]
+    sla <- field(port, "sla")
+    list(
+      id = text_value(field(port, "id"), paste0(direction, "-", i)),
+      direction = direction,
+      version = text_value(field(port, "version")),
+      access = text_value(field(port, "access")),
+      contract_version = text_value(field(field(port, "contract"), "version")),
+      sla = if (is.null(sla)) NULL else list(
+        refresh = text_value(field(sla, "refresh")),
+        available_by = text_value(field(sla, "available_by")),
+        timezone = text_value(field(sla, "timezone")),
+        freshness = number_value(field(sla, "freshness"))
+      )
+    )
+  }))
+}
+
+product_guarantees <- function(x, lifecycle = NULL) {
+  list(
+    lifecycle = lifecycle,
+    inputs = port_metadata(x, "input"),
+    outputs = port_metadata(x, "output"),
+    policy_count = length(getOption("dataraft.policies", list()))
+  )
+}
+
 product_summary <- function(x, handle, fallback, kind = object_kind(x)) {
   if (is.null(kind)) {
     ide_abort("unsupported")
@@ -175,7 +206,10 @@ ide_product <- function(handle, context = ide_context()) {
       list(
         contract = contract_metadata(metadata$definition$contract),
         sources = descriptor_sources(metadata$definition),
-        rules = rules_metadata(metadata$definition)
+        rules = rules_metadata(metadata$definition),
+        guarantees = product_guarantees(metadata$definition,
+          if (requireNamespace("dataraft.lake", quietly = TRUE))
+            dataraft.lake::dr_product_state(resolved$object, resolved$id) else NULL)
       )
     ))
   }
@@ -198,7 +232,8 @@ ide_product <- function(handle, context = ide_context()) {
     list(
       contract = contract_metadata(contract),
       sources = sources_metadata(x),
-      rules = rules_metadata(x)
+      rules = rules_metadata(x),
+      guarantees = product_guarantees(x)
     )
   )
 }

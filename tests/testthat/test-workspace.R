@@ -104,6 +104,20 @@ test_that('trial retains results and leaves original product unchanged', {
   )
 })
 
+test_that('product detail exposes bounded port guarantees without endpoint data', {
+  skip_if_not_installed('dataraft.adapters')
+  e <- new.env(parent = emptyenv())
+  e$orders <- dataraft.core::dr_product('orders', data.frame(id = 1L)) |>
+    dataraft.core::dr_add_output(dataraft.core::dr_output(
+      'warehouse', dataraft.adapters::dr_target_rds(tempfile()),
+      sla = dataraft.core::dr_sla(available_by = '08:00', timezone = 'UTC')))
+  detail <- ide_product('binding:orders', ide_context(e))
+  expect_identical(detail$guarantees$outputs[[1]]$id, 'warehouse')
+  expect_identical(detail$guarantees$outputs[[1]]$sla$available_by, '08:00')
+  expect_null(detail$guarantees$lifecycle)
+  expect_false(grepl('endpoint|tempfile', jsonlite::toJSON(detail, auto_unbox = TRUE)))
+})
+
 test_that('viewer bounds retained data before materialization', {
   e <- new.env(parent = emptyenv())
   e$table <- data.frame(id = 1:20)

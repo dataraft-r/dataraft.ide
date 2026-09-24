@@ -9,6 +9,11 @@ validator_v2 = jsonschema.Draft202012Validator(schema_v2, format_checker=jsonsch
 for path in Path('inst/fixtures').glob('*.json'):
     value = json.loads(path.read_text())
     (validator_v2 if value.get('contract') == 2 else validator).validate(value)
+detail = json.loads(Path('inst/fixtures/product.json').read_text())
+assert 'guarantees' in detail['data'], 'Bridge fixtures must exercise port guarantees'
+leaked = json.loads(json.dumps(detail))
+leaked['data']['guarantees']['endpoint'] = 'private destination'
+assert not validator.is_valid(leaked), 'Product guarantee must not expose target endpoints'
 for mutation in ({'contract': '1'}, {'data': {'items': {}, 'truncated': False}}, {'secret': 'unexpected'}):
     value = json.loads(Path('inst/fixtures/products.json').read_text())
     value.update(mutation)
