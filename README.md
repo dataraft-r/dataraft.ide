@@ -6,6 +6,15 @@ This optional, experimental R package is the bridge between an existing R worksp
 
 [`dataraft` overview](https://github.com/dataraft-r/dataraft) · [IDE reference](https://dataraft-r.github.io/dataraft/components/dataraft.ide/reference/index.html)
 
+## Install
+
+Requires R 4.2 or later. Install the development package from GitHub:
+
+```r
+install.packages("pak")
+pak::pak("dataraft-r/dataraft.ide")
+```
+
 ## Start in R
 
 ```r
@@ -14,11 +23,12 @@ workspace$orders <- dataraft.core::dr_product(
   "orders", data.frame(id = 1L, amount = 25)
 )
 context <- dataraft.ide::ide_context(workspace)
+str(context, max.level = 1)
 ```
 
 The context identifies objects the client may inspect. The extension sends explicit `ide_request()` calls; it requires an R session you select in Positron. DuckDB and a lake are optional for workspace-only inspection. Data cells are not included in the metadata channel; an explicit View action opens a bounded view inside R.
 
-Install the development package with `pak::pak("dataraft-r/dataraft.ide")`. See the [workspace vignette](https://dataraft-r.github.io/dataraft/components/dataraft.ide/reference/index.html) and [extension setup](https://github.com/dataraft-r/dataraft-positron#install).
+See the [IDE reference](https://dataraft-r.github.io/dataraft/components/dataraft.ide/reference/index.html) and [extension setup](https://github.com/dataraft-r/dataraft-positron#install).
 
 ## Further details
 
