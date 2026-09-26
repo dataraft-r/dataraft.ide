@@ -32,7 +32,7 @@ See the [IDE reference](https://dataraft-r.github.io/dataraft/components/dataraf
 
 ## Further details
 
-Only `ide_context()` and `ide_request()` are public. All other `ide_*` helpers are internal and may change without notice. Existing callers of `ide_products(context)` should use a `products` request as above; this applies equally to the other named operations. `ide_emit()` is internal too. The bridge validates allowed requests in R; clients validate the emitted envelope against the JSON Schema.
+The bridge exposes `ide_context()` and `ide_request()`. The package also exports `dr_init_product()` to create a local product blueprint. Other `ide_*` helpers are internal and may change without notice. Clients should request the `products` operation through `ide_request()` instead of calling `ide_products()` directly; the same applies to other named operations. `ide_emit()` is internal too. The bridge validates allowed requests in R; clients validate the emitted envelope against the JSON Schema.
 
 `ide_context()` accepts an explicit workspace environment, optional exact object names and an already connected lake. Discovery skips active and delayed bindings and never runs source or transform callbacks. Workflows, model products, retained results and in-memory tables have opaque handles. Lake metadata comes from the current registry, including published contracts, latest attempt status, release ordering and lineage. Incident records describe observed failed or unchecked checks, not incident resolution state.
 
