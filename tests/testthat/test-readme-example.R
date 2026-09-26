@@ -1,6 +1,11 @@
 test_that("README first example runs", {
   # Check the snippet readers copy from GitHub.
-  lines <- readLines(test_path("..", "..", "README.md"), warn = FALSE)
+  readme <- file.path(Sys.getenv("GITHUB_WORKSPACE"), "README.md")
+  if (!nzchar(Sys.getenv("GITHUB_WORKSPACE")) || !file.exists(readme)) {
+    readme <- test_path("..", "..", "README.md")
+  }
+  if (!file.exists(readme)) skip("README source is unavailable here")
+  lines <- readLines(readme, warn = FALSE)
   heading <- match("## Start in R", lines)
   expect_false(is.na(heading))
   opening <- which(lines == "```r" & seq_along(lines) > heading)[1L]
